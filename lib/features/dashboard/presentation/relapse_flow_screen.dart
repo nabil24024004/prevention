@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:prevention/core/theme/app_colors.dart';
 import '../data/dashboard_repository.dart';
+import '../../auth/data/user_repository.dart';
+import '../../progress/presentation/progress_screen.dart';
 
 class RelapseFlowScreen extends ConsumerStatefulWidget {
   const RelapseFlowScreen({super.key});
@@ -46,14 +48,26 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
   Future<void> _submitRelapse() async {
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(dashboardRepositoryProvider).logRelapse(
-        trigger: _trigger,
-        reflection: _reflectionController.text,
-      );
+      await ref
+          .read(dashboardRepositoryProvider)
+          .logRelapse(
+            trigger: _trigger,
+            reflection: _reflectionController.text,
+          );
+
+      // Sync all progress related data
+      ref.invalidate(userProfileStreamProvider);
+      ref.invalidate(weeklyCheckInsProvider);
+      ref.invalidate(weeklyRelapsesProvider);
+      ref.invalidate(progressDataProvider);
+      ref.invalidate(relapseHistoryProvider);
+
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -65,7 +79,10 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Accountability', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Accountability',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
@@ -94,17 +111,29 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 80),
+        const Icon(
+          Icons.warning_amber_rounded,
+          color: AppColors.error,
+          size: 80,
+        ),
         const SizedBox(height: 24),
         Text(
           'You have broken your promise today.',
-          style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          style: GoogleFonts.outfit(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
         Text(
           '"Indeed, Allah is with those who are patient." - Quran 2:153',
-          style: GoogleFonts.outfit(fontSize: 16, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+          style: GoogleFonts.outfit(
+            fontSize: 16,
+            color: AppColors.textSecondary,
+            fontStyle: FontStyle.italic,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 32),
@@ -130,7 +159,14 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('What triggered this fall?', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        Text(
+          'What triggered this fall?',
+          style: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
         const SizedBox(height: 24),
         Wrap(
           spacing: 12,
@@ -143,7 +179,11 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
               onSelected: (_) => setState(() => _trigger = trigger),
               selectedColor: AppColors.primary,
               backgroundColor: AppColors.surface,
-              labelStyle: TextStyle(color: isSelected ? AppColors.background : AppColors.textPrimary),
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? AppColors.background
+                    : AppColors.textPrimary,
+              ),
             );
           }).toList(),
         ),
@@ -151,7 +191,9 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _trigger.isNotEmpty ? () => setState(() => _currentStep = 2) : null,
+            onPressed: _trigger.isNotEmpty
+                ? () => setState(() => _currentStep = 2)
+                : null,
             child: const Text('Next'),
           ),
         ),
@@ -163,9 +205,19 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Reflect on what happened.', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        Text(
+          'Reflect on what happened.',
+          style: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
         const SizedBox(height: 8),
-        Text('This is mandatory to proceed.', style: TextStyle(color: AppColors.textSecondary)),
+        Text(
+          'This is mandatory to proceed.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
         const SizedBox(height: 24),
         TextField(
           controller: _reflectionController,
@@ -181,8 +233,12 @@ class _RelapseFlowScreenState extends ConsumerState<RelapseFlowScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _isReflectionValid && !_isSubmitting ? _submitRelapse : null,
-            child: _isSubmitting ? const CircularProgressIndicator(color: Colors.white) : const Text('Submit & Repent'),
+            onPressed: _isReflectionValid && !_isSubmitting
+                ? _submitRelapse
+                : null,
+            child: _isSubmitting
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('Submit & Repent'),
           ),
         ),
       ],

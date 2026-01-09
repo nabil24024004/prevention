@@ -10,19 +10,21 @@ import '../../features/dashboard/presentation/panic_mode_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/progress/presentation/progress_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../presentation/main_scaffold.dart';
+import '../../features/checkin/presentation/checkin_screen.dart';
+import '../../features/statistics/presentation/statistics_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 
 GoRouter createRouter(bool isFirstLaunch) {
   return GoRouter(
-    initialLocation: isFirstLaunch ? '/onboarding' : '/welcome',
+    initialLocation: isFirstLaunch ? '/onboarding' : '/dashboard',
     redirect: (context, state) {
-      // if (isFirstLaunch && state.matchedLocation == '/onboarding') return null;
-      // if (isFirstLaunch && state.matchedLocation != '/onboarding') return '/onboarding';
-
       final session = Supabase.instance.client.auth.currentSession;
-      final isAuthRoute = state.matchedLocation == '/login' || 
-                          state.matchedLocation == '/signup' || 
-                          state.matchedLocation == '/welcome' ||
-                          state.matchedLocation == '/onboarding';
+      final isAuthRoute =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/signup' ||
+          state.matchedLocation == '/welcome' ||
+          state.matchedLocation == '/onboarding';
 
       if (session == null) {
         return isAuthRoute ? null : '/welcome';
@@ -39,22 +41,47 @@ GoRouter createRouter(bool isFirstLaunch) {
         path: '/welcome',
         builder: (context, state) => const WelcomeScreen(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/signup',
         builder: (context, state) => const SignUpScreen(),
       ),
-      GoRoute(
-        path: '/dashboard',
-        builder: (context, state) => const DashboardScreen(),
+
+      // Main App Shell
+      ShellRoute(
+        builder: (context, state, child) {
+          return MainScaffold(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: DashboardScreen()),
+          ),
+          GoRoute(
+            path: '/islamic-corner',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: IslamicCornerScreen()),
+          ),
+          GoRoute(
+            path: '/check-in',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: CheckInScreen()),
+          ),
+          GoRoute(
+            path: '/statistics',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: StatisticsScreen()),
+          ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ProfileScreen()),
+          ),
+        ],
       ),
-      GoRoute(
-        path: '/islamic-corner',
-        builder: (context, state) => const IslamicCornerScreen(),
-      ),
+
+      // Standalone Routes
       GoRoute(
         path: '/relapse',
         builder: (context, state) => const RelapseFlowScreen(),

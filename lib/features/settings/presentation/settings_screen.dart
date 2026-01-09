@@ -30,12 +30,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Settings', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Settings',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
       ),
       body: ListView(
@@ -45,11 +46,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Card(
             color: AppColors.surface,
             margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: SwitchListTile(
-              secondary: Icon(Icons.security, color: _isBlockerActive ? AppColors.secondary : AppColors.primary),
-              title: Text('Browser Protection', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
-              subtitle: Text(_isBlockerActive ? 'Adult sites blocked' : 'Protection disabled', style: TextStyle(color: AppColors.textSecondary)),
+              secondary: Icon(
+                Icons.security,
+                color: _isBlockerActive
+                    ? AppColors.secondary
+                    : AppColors.primary,
+              ),
+              title: Text(
+                'Browser Protection',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              subtitle: Text(
+                _isBlockerActive
+                    ? 'Adult sites blocked'
+                    : 'Protection disabled',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
               value: _isBlockerActive,
               activeColor: AppColors.secondary,
               onChanged: (value) async {
@@ -64,7 +83,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: AppColors.error,
+                      ),
                     );
                   }
                 }
@@ -76,53 +98,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Card(
             color: AppColors.surface,
             margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: SwitchListTile(
               secondary: Icon(Icons.notifications, color: AppColors.primary),
-              title: Text('Daily Reminders', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
-              subtitle: Text('Get reminded to check in', style: TextStyle(color: AppColors.textSecondary)),
+              title: Text(
+                'Daily Reminders',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              subtitle: Text(
+                'Get reminded to check in',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
               value: _notificationsEnabled,
               activeColor: AppColors.secondary,
               onChanged: (value) {
                 setState(() => _notificationsEnabled = value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(value ? 'Reminders enabled' : 'Reminders disabled')),
-                );
-              },
-            ),
-          ),
-
-          // Account Info
-          Card(
-            color: AppColors.surface,
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: Icon(Icons.person, color: AppColors.primary),
-              title: Text('Account', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
-              subtitle: Text(user?.email ?? 'Not signed in', style: TextStyle(color: AppColors.textSecondary)),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    backgroundColor: AppColors.surface,
-                    title: Text('Account', style: TextStyle(color: AppColors.textPrimary)),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Email: ${user?.email ?? 'N/A'}', style: TextStyle(color: AppColors.textSecondary)),
-                        const SizedBox(height: 8),
-                        Text('User ID: ${user?.id.substring(0, 8) ?? 'N/A'}...', style: TextStyle(color: AppColors.textSecondary)),
-                      ],
+                  SnackBar(
+                    content: Text(
+                      value ? 'Reminders enabled' : 'Reminders disabled',
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Text('Close', style: TextStyle(color: AppColors.primary)),
-                      ),
-                    ],
                   ),
                 );
               },
@@ -135,12 +135,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Card(
             color: AppColors.surface,
             margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: ListTile(
               leading: Icon(Icons.logout, color: AppColors.error),
-              title: Text('Sign Out', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w500)),
-              subtitle: Text('Log out of your account', style: TextStyle(color: AppColors.textSecondary)),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              title: Text(
+                'Sign Out',
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              subtitle: Text(
+                'Log out of your account',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: AppColors.textSecondary,
+              ),
               onTap: () async {
                 await Supabase.instance.client.auth.signOut();
                 if (context.mounted) context.go('/login');

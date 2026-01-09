@@ -291,4 +291,4 @@ DROP FUNCTION IF EXISTS check_rate_limit CASCADE;
 
 **Deployment Prepared By**: Antigravity AI  
 **Date**: January 9, 2026  
-**Version**: 1.0.0-beta
+**Version**: 2.5.0 beta release

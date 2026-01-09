@@ -13,7 +13,10 @@ class IslamicCornerScreen extends ConsumerWidget {
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Islamic Corner', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+          title: Text(
+            'Islamic Corner',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          ),
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Verses'),
@@ -58,23 +61,41 @@ class ContentList extends ConsumerWidget {
             final item = items[index];
             return Card(
               color: AppColors.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (item['title'] != null)
-                      Text(item['title'], style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                      Text(
+                        item['title'],
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
                     if (item['title'] != null) const SizedBox(height: 8),
-                    Text(item['content'], style: const TextStyle(fontSize: 16, height: 1.5)),
+                    Text(
+                      item['content'],
+                      style: const TextStyle(fontSize: 16, height: 1.5),
+                    ),
                     if (item['source'] != null) ...[
                       const SizedBox(height: 12),
                       Align(
                         alignment: Alignment.centerRight,
-                        child: Text('- ${item['source']}', style: TextStyle(color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+                        child: Text(
+                          '- ${item['source']}',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ),
-                    ]
+                    ],
                   ],
                 ),
               ),

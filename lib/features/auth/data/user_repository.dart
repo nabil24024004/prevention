@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_model.dart';
 
-final userRepositoryProvider = Provider((ref) => UserRepository(Supabase.instance.client));
+final userRepositoryProvider = Provider(
+  (ref) => UserRepository(Supabase.instance.client),
+);
 
 final userProfileStreamProvider = StreamProvider<UserProfile>((ref) {
   final repo = ref.watch(userRepositoryProvider);

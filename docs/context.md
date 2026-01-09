@@ -37,6 +37,7 @@ Pornography addiction has become a widespread issue affecting millions globally,
 2. **Behavioral Accountability**: Streak tracking, daily check-ins
 3. **Spiritual Motivation**: Islamic teachings, Quranic verses
 4. **Relapse Handling**: Shame awareness, trigger analysis, reflection
+5. **Emergency Intervention**: Panic mode with time-locking and motivation
 
 ### Why This Works
 
@@ -311,5 +312,5 @@ Pornography addiction has become a widespread issue affecting millions globally,
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: January 2026
+**Version**: 2.5.0 beta release  
+**Last Updated**: January 9, 2026

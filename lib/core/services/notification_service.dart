@@ -8,25 +8,33 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
     tz.initializeTimeZones();
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
-    const settings = InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
 
     await _notifications.initialize(settings);
-    
+
     // Request permissions specifically for Android 13+
-    final androidImplementation = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidImplementation = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await androidImplementation?.requestNotificationsPermission();
   }
 
@@ -50,7 +58,7 @@ class NotificationService {
     "Be patient, for what was written for you was written by the greatest of writers.",
     "Trust Allah's timing.",
     "Protect your gaze, protect your heart.",
-    "Jannah is worth the struggle."
+    "Jannah is worth the struggle.",
   ];
 
   Future<void> scheduleDailyNotifications() async {
@@ -62,15 +70,15 @@ class NotificationService {
     // Periodic is limited on Android.
     // Better to schedule a few discrete times or use `periodicallyShow` with RepeatInterval.everyMinute for testing?
     // No, RepeatInterval.daily is too slow. RepeatInterval is limited.
-    // Let's use zonedSchedule for 8am, 4pm, 12am roughly? 
+    // Let's use zonedSchedule for 8am, 4pm, 12am roughly?
     // Or just "Every 8 hours" using RepeatInterval? local_notifications doesn't have "Every 8 hours".
     // It has `everyMinute`, `hourly`, `daily`, `weekly`.
-    
+
     // So we will schedule 3 fixed times for "Daily" checks.
     // 8:00 AM
     // 4:00 PM
     // 9:00 PM
-    
+
     await _scheduleAtTime(8, 0, 1);
     await _scheduleAtTime(16, 0, 2);
     await _scheduleAtTime(21, 0, 3);
@@ -78,7 +86,14 @@ class NotificationService {
 
   Future<void> _scheduleAtTime(int hour, int minute, int id) async {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
 
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
@@ -103,7 +118,8 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time, // Repeats every day at this time
+      matchDateTimeComponents:
+          DateTimeComponents.time, // Repeats every day at this time
     );
   }
 }

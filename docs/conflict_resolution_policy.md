@@ -252,4 +252,9 @@ All conflicts are logged to `security_events`:
 
 ---
 
-**Status**: This policy ensures data integrity while providing clear feedback to users about sync conflicts.
+**Status**: This policy ensures data integrity while providing clear feedback to users about sync conflicts.  
+
+---
+
+**Version**: 2.5.0 beta release  
+**Last Updated**: January 9, 2026

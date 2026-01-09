@@ -1,4 +1,4 @@
-# Testing Instructions - Week 1 Beta
+# Testing Instructions - 2.5.0 beta release
 
 ## 🎯 Welcome Beta Tester!
 
@@ -186,4 +186,9 @@ Thank you for helping test the **Prevention** app. This guide will walk you thro
 
 ---
 
-**Thank you for testing! Your feedback will make this app better for everyone.**
+**Thank you for testing! Your feedback will make this app better for everyone.**  
+
+---
+
+**Version**: 2.5.0 beta release  
+**Last Updated**: January 9, 2026

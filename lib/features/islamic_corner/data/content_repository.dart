@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-final contentRepositoryProvider = Provider((ref) => ContentRepository(Supabase.instance.client));
+final contentRepositoryProvider = Provider(
+  (ref) => ContentRepository(Supabase.instance.client),
+);
 
-final contentStreamProvider = StreamProvider.family<List<Map<String, dynamic>>, String?>((ref, type) {
-  return ref.watch(contentRepositoryProvider).getContentStream(type: type);
-});
+final contentStreamProvider =
+    StreamProvider.family<List<Map<String, dynamic>>, String?>((ref, type) {
+      return ref.watch(contentRepositoryProvider).getContentStream(type: type);
+    });
 
 class ContentRepository {
   final SupabaseClient _client;
@@ -19,7 +22,9 @@ class ContentRepository {
       // For simplicity/correctness with Supabase stream, we'll fetch all and filter in app if needed,
       // or just trust the RLS. But 'stream' doesn't support complex filtering easily in early versions.
       // Let's stick to simple stream for now.
-      return query.map((data) => data.where((item) => item['type'] == type).toList());
+      return query.map(
+        (data) => data.where((item) => item['type'] == type).toList(),
+      );
     }
     return query;
   }

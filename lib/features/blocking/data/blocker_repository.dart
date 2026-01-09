@@ -27,7 +27,7 @@ class BlockerRepository {
     try {
       await platform.invokeMethod('stopVpn');
     } on PlatformException catch (e) {
-       throw Exception('Failed to stop blocking: ${e.message}');
+      throw Exception('Failed to stop blocking: ${e.message}');
     }
   }
 

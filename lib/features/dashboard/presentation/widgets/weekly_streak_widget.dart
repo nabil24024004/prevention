@@ -8,16 +8,23 @@ class WeeklyStreakWidget extends StatelessWidget {
   final List<String> completedDates;
   final List<String> relapseDates;
 
-  const WeeklyStreakWidget({super.key, required this.completedDates, this.relapseDates = const []});
+  const WeeklyStreakWidget({
+    super.key,
+    required this.completedDates,
+    this.relapseDates = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
     // Start of week (Sunday)
     final startOfWeek = now.subtract(Duration(days: now.weekday % 7));
-    
+
     // Generate week days
-    final weekDays = List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+    final weekDays = List.generate(
+      7,
+      (index) => startOfWeek.add(Duration(days: index)),
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -49,7 +56,10 @@ class WeeklyStreakWidget extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -72,8 +82,12 @@ class WeeklyStreakWidget extends StatelessWidget {
               final dateStr = date.toIso8601String().split('T')[0];
               final isCompleted = completedDates.contains(dateStr);
               final isRelapse = relapseDates.contains(dateStr);
-              final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
-              final isFuture = date.isAfter(now) && !isToday; // Ensure today is not future
+              final isToday =
+                  date.day == now.day &&
+                  date.month == now.month &&
+                  date.year == now.year;
+              final isFuture =
+                  date.isAfter(now) && !isToday; // Ensure today is not future
               final dayName = DateFormat('E').format(date)[0]; // S, M, T...
 
               return Column(
@@ -94,10 +108,20 @@ class WeeklyStreakWidget extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().slideY(begin: -0.2, end: 0, duration: 600.ms, curve: Curves.easeOutBack);
+    ).animate().slideY(
+      begin: -0.2,
+      end: 0,
+      duration: 600.ms,
+      curve: Curves.easeOutBack,
+    );
   }
 
-  Widget _buildDayIndicator(bool isCompleted, bool isRelapse, bool isToday, bool isFuture) {
+  Widget _buildDayIndicator(
+    bool isCompleted,
+    bool isRelapse,
+    bool isToday,
+    bool isFuture,
+  ) {
     if (isRelapse) {
       return Container(
         width: 32,
@@ -106,13 +130,13 @@ class WeeklyStreakWidget extends StatelessWidget {
           color: AppColors.error, // Red for relapse
           shape: BoxShape.circle,
           boxShadow: [
-             BoxShadow(
-              color: Color(0x66FF5252), 
-              blurRadius: 8, 
+            BoxShadow(
+              color: Color(0x66FF5252),
+              blurRadius: 8,
               spreadRadius: 1,
               offset: Offset(0, 2),
-            )
-          ]
+            ),
+          ],
         ),
         child: const Icon(Icons.close, color: Colors.white, size: 20),
       ).animate().shake(duration: 400.ms); // Shake animation for negative event
@@ -121,16 +145,16 @@ class WeeklyStreakWidget extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: const BoxDecoration(
-          color: Colors.blue, 
+          color: Colors.blue,
           shape: BoxShape.circle,
           boxShadow: [
-             BoxShadow(
-              color: Colors.blueAccent, 
-              blurRadius: 8, 
+            BoxShadow(
+              color: Colors.blueAccent,
+              blurRadius: 8,
               spreadRadius: 1,
               offset: Offset(0, 2),
-            )
-          ]
+            ),
+          ],
         ),
         child: const Icon(Icons.check, color: Colors.white, size: 20),
       ).animate().scale(duration: 400.ms, curve: Curves.elasticOut);

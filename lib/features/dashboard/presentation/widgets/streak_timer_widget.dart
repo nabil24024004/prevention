@@ -6,7 +6,11 @@ class StreakTimerWidget extends StatefulWidget {
   final DateTime startDate;
   final bool isPaused;
 
-  const StreakTimerWidget({super.key, required this.startDate, this.isPaused = false});
+  const StreakTimerWidget({
+    super.key,
+    required this.startDate,
+    this.isPaused = false,
+  });
 
   @override
   State<StreakTimerWidget> createState() => _StreakTimerWidgetState();

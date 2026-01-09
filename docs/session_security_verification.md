@@ -179,4 +179,9 @@ FROM rate_limits;
 
 ---
 
-**Status**: Use this checklist to verify Supabase configuration. Items marked with ✅ in "Recommended Configuration" should be enabled.
+**Status**: Use this checklist to verify Supabase configuration. Items marked with ✅ in "Recommended Configuration" should be enabled.  
+
+---
+
+**Version**: 2.5.0 beta release  
+**Last Updated**: January 9, 2026

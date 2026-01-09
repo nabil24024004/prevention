@@ -100,10 +100,43 @@ SELECT max(count) -- Current streak
 - ✅ Rate limited to prevent spam
 - ✅ VPN enforcement (blocks check-ins if external VPN active)
 - ✅ Input validation (mood enum, notes length)
+- ✅ **Duplicate Prevention**: Client & server checks prevent multiple check-ins per day
+- ✅ **Status Locking**: UI prevents contradictions (can't check-in if relapsed, can't relapse if checked-in)
 
 ---
 
-## 🕌 3. Islamic Motivation Content
+## 🚨 3. Panic Mode (Enhanced)
+
+### Description
+Emergency intervention tool designed to break the "trance" of temptation through time-locking and motivation.
+
+### Key Features
+
+1.  **Mandatory 5-Minute Timer**:
+    - Locks user in the screen for 300 seconds
+    - Prevents impulsive navigation away from help
+    - Disables "I AM CALM NOW" button until timer ends
+
+2.  **Visual Motivation**:
+    - **Pulsing Warning**: Red gradient visual cue
+    - **Streak Display**: Shows current streak to leverage loss aversion ("Don't break your streak of X days")
+    - **Future Warning**: "One moment of weakness isn't worth losing this progress"
+
+3.  **Spiritual Grounding**:
+    - Random Islamic Duas displayed
+    - Prompt to read aloud
+
+### Technical Implementation
+
+**Client** (`PanicModeScreen.dart`):
+- `Timer.periodic` for 300s countdown
+- `PopScope(canPop: false)` disables Android back button
+- `SystemChrome` (future) to lock task switching
+- Fetches live streak data from `user_repository`
+
+---
+
+## 🕌 4. Islamic Motivation Content
 
 ### Description
 Curated collection of Quranic verses, Hadith, and Islamic guidance related to purity, chastity, and overcoming temptation.
@@ -155,7 +188,7 @@ Curated collection of Quranic verses, Hadith, and Islamic guidance related to pu
 
 ---
 
-## 💔 4. Relapse Accountability Flow
+## 💔 5. Relapse Accountability Flow
 
 ### Description
 Structured 3-step process for logging relapses that enforces reflection and prevents casual streak resets.
@@ -225,7 +258,7 @@ Support team can identify:
 
 ---
 
-## 🔄 5. Offline Sync
+## 🔄 6. Offline Sync
 
 ### Description
 Allows check-ins while offline, syncing automatically when connection restored, with server-side integrity validation.
@@ -276,7 +309,7 @@ See [conflict_resolution_policy.md](conflict_resolution_policy.md) for full deta
 
 ---
 
-## 🛡️ 6. Security Features
+## 🛡️ 7. Security Features
 
 ### VPN Enforcement
 
@@ -327,7 +360,7 @@ All security events logged:
 
 ---
 
-## 📱 7. User Interface
+## 📱 8. User Interface
 
 ### Dashboard
 
@@ -351,7 +384,7 @@ All security events logged:
 
 ---
 
-## 🔔 8. Notifications (Planned)
+## 🔔 9. Notifications (Planned)
 
 ### Daily Reminders
 - Check-in reminder at user-set time
@@ -365,5 +398,5 @@ All security events logged:
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: January 2026
+**Version**: 2.5.0 beta release  
+**Last Updated**: January 9, 2026

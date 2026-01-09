@@ -408,5 +408,5 @@ End Users (Android devices)
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: January 2026
+**Version**: 2.5.0 beta release  
+**Last Updated**: January 9, 2026

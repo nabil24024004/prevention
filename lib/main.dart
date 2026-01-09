@@ -27,16 +27,48 @@ Future<void> main() async {
   runApp(ProviderScope(child: PreventionApp(isFirstLaunch: isFirstLaunch)));
 }
 
-class PreventionApp extends ConsumerWidget {
+class PreventionApp extends ConsumerStatefulWidget {
   final bool isFirstLaunch;
   const PreventionApp({super.key, required this.isFirstLaunch});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PreventionApp> createState() => _PreventionAppState();
+}
+
+class _PreventionAppState extends ConsumerState<PreventionApp> {
+  late final AppLifecycleListener _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = AppLifecycleListener(onResume: _handleResume);
+  }
+
+  Future<void> _handleResume() async {
+    // Force session refresh on resume to prevent "Token has expired" errors
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+      try {
+        await Supabase.instance.client.auth.refreshSession();
+        debugPrint('Session refreshed successfully on resume');
+      } catch (e) {
+        debugPrint('Error refreshing session on resume: $e');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _listener.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Prevention',
       theme: AppTheme.darkTheme,
-      routerConfig: createRouter(isFirstLaunch),
+      routerConfig: createRouter(widget.isFirstLaunch),
       debugShowCheckedModeBanner: false,
     );
   }

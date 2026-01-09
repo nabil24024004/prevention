@@ -19,19 +19,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, dynamic>> _pages = [
     {
       'title': 'Take Back Control',
-      'description': 'Break free from habits that hold you back. Reclaim your time, focus, and energy.',
+      'description':
+          'Break free from habits that hold you back. Reclaim your time, focus, and energy.',
       'icon': Icons.link_off_rounded,
       'color': AppColors.primary,
     },
     {
       'title': 'Smart Protection',
-      'description': 'Advanced internet filtering and browser protection to keep your environment pure.',
+      'description':
+          'Advanced internet filtering and browser protection to keep your environment pure.',
       'icon': Icons.security_rounded,
       'color': Colors.blueAccent,
     },
     {
       'title': 'Stay Strong',
-      'description': 'Daily motivation, panic mode support, and streak tracking to help you succeed.',
+      'description':
+          'Daily motivation, panic mode support, and streak tracking to help you succeed.',
       'icon': Icons.favorite_rounded,
       'color': Colors.redAccent,
     },
@@ -65,14 +68,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          
+
           SafeArea(
             child: Column(
               children: [
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
-                    onPageChanged: (index) => setState(() => _currentPage = index),
+                    onPageChanged: (index) =>
+                        setState(() => _currentPage = index),
                     itemCount: _pages.length,
                     itemBuilder: (context, index) {
                       final page = _pages[index];
@@ -84,14 +88,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             Container(
                               padding: const EdgeInsets.all(32),
                               decoration: BoxDecoration(
-                                color: (page['color'] as Color).withOpacity(0.1),
+                                color: (page['color'] as Color).withOpacity(
+                                  0.1,
+                                ),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
-                                page['icon'],
-                                size: 80,
-                                color: page['color'],
-                              ).animate(target: _currentPage == index ? 1 : 0).scale(duration: 500.ms, curve: Curves.easeOutBack),
+                              child:
+                                  Icon(
+                                        page['icon'],
+                                        size: 80,
+                                        color: page['color'],
+                                      )
+                                      .animate(
+                                        target: _currentPage == index ? 1 : 0,
+                                      )
+                                      .scale(
+                                        duration: 500.ms,
+                                        curve: Curves.easeOutBack,
+                                      ),
                             ),
                             const SizedBox(height: 48),
                             Text(
@@ -119,7 +133,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     },
                   ),
                 ),
-                
+
                 // Indicators
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -130,18 +144,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 8,
                       width: _currentPage == index ? 32 : 8,
                       decoration: BoxDecoration(
-                        color: _currentPage == index ? _pages[_currentPage]['color'] : Colors.white24,
+                        color: _currentPage == index
+                            ? _pages[_currentPage]['color']
+                            : Colors.white24,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     );
                   }),
                 ),
-                
+
                 const SizedBox(height: 48),
-                
+
                 // Bottom Buttons
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 24.0,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -169,11 +188,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _pages[_currentPage]['color'],
                           foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: Text(
-                          _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
+                          _currentPage == _pages.length - 1
+                              ? 'Get Started'
+                              : 'Next',
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
