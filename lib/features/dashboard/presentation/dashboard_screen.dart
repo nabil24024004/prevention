@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -98,6 +99,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (_isBlockerActive) {
         await ref.read(blockerRepositoryProvider).stopBlocking();
       } else {
+        // Request notification permission for Android 13+
+        final status = await Permission.notification.request();
+        if (status.isDenied || status.isPermanentlyDenied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Notification permission is required to run the blocker.'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+          return;
+        }
+
         await ref.read(blockerRepositoryProvider).startBlocking();
       }
       // Give Android time to start/stop the VPN service
@@ -159,203 +174,243 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
         
         SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Assalamualaikum,', style: TextStyle(color: AppColors.textSecondary, fontSize: 20, fontWeight: FontWeight.w600)),
-                        Text(
-                          profile.username ?? 'Brother',
-                          style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                      onPressed: () => context.push('/settings'),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Weekly Streak Tracker
-                ref.watch(weeklyCheckInsProvider).when(
-                  data: (dates) => WeeklyStreakWidget(completedDates: dates),
-                  loading: () => const SizedBox(height: 100, child: Center(child: CircularProgressIndicator())), 
-                  error: (err, _) => const SizedBox.shrink(),
-                ),
-
-
-
-                // Hero Streak Section
-                Center(
-                  child: GestureDetector(
-                    onTap: () => context.push('/progress'),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Outer Glow
-                        Container(
-                          width: 220,
-                          height: 220,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.15),
-                                blurRadius: 40,
-                                spreadRadius: 0,
-                              )
-                            ],
-                          ),
-                        ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-                         .scale(begin: const Offset(1, 1), end: const Offset(1.05, 1.05), duration: 2.seconds),
-                        
-                        // Ring
-                        Container(
-                          width: 200,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 2),
-                            gradient: LinearGradient(
-                              colors: [AppColors.primary.withOpacity(0.1), Colors.transparent],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                          ),
-                        ),
-                        
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${profile.currentStreakDays}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 72, 
-                                fontWeight: FontWeight.bold, 
-                                color: Colors.white,
-                                height: 1.0,
-                              ),
-                            ),
-                            Text(
-                              'DAYS FREE', 
-                              style: TextStyle(
-                                color: AppColors.primary, 
-                                letterSpacing: 3, 
-                                fontSize: 12, 
-
-                                fontWeight: FontWeight.bold
-                              ),
-                            ),
-                            
-                            // Live Timer
-                            StreakTimerWidget(startDate: profile.startDate),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Best Streak Pill
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Best Streak: ${profile.bestStreakDays} days',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-                
-                // Calendar Link
-                Center(
-                  child: TextButton.icon(
-                    onPressed: () => context.push('/progress'),
-                    icon: Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
-                    label: Text(
-                      'View Progress Calendar', 
-                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                // Panic Button (Redesigned)
-                _buildPanicButton(context),
-                
-                const SizedBox(height: 24),
-
-                // Motivation Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [const Color(0xFF2A2A2A), const Color(0xFF1F1F1F)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.05)),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
-                    ],
-                  ),
-                  child: Column(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              // Refresh all data
+              ref.invalidate(userProfileStreamProvider);
+              ref.invalidate(weeklyCheckInsProvider);
+              ref.invalidate(weeklyRelapsesProvider);
+              
+              try {
+                // Wait for futures to complete so the refresh indicator stays valid
+                await Future.wait([
+                  ref.read(weeklyCheckInsProvider.future),
+                  ref.read(weeklyRelapsesProvider.future),
+                ]);
+              } catch (e) {
+                // Ignore errors during refresh (they will be shown by the UI error states)
+              }
+              
+              await _checkBlockerStatus();
+            },
+            color: AppColors.primary,
+            backgroundColor: AppColors.surface,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+              physics: const AlwaysScrollableScrollPhysics(), // Ensure refresh works even if content is short
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.format_quote_rounded, color: AppColors.primary, size: 30),
-                      const SizedBox(height: 8),
-                      Text(
-                        _dailyQuote,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          fontStyle: FontStyle.italic,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Assalamualaikum,', style: TextStyle(color: AppColors.textSecondary, fontSize: 20, fontWeight: FontWeight.w600)),
+                          Text(
+                            profile.username ?? 'Brother',
+                            style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                        onPressed: () => context.push('/settings'),
                       ),
                     ],
                   ),
-                ).animate().slideY(begin: 0.1, end: 0, duration: 500.ms),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Weekly Streak Tracker
+                  // Weekly Streak Tracker
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final checkInsAsync = ref.watch(weeklyCheckInsProvider);
+                      final relapsesAsync = ref.watch(weeklyRelapsesProvider);
 
-                const SizedBox(height: 24),
+                      return checkInsAsync.when(
+                        data: (dates) => relapsesAsync.when(
+                          data: (relapses) => WeeklyStreakWidget(
+                            completedDates: dates,
+                            relapseDates: relapses,
+                          ),
+                          loading: () => WeeklyStreakWidget(completedDates: dates), // Polling/loading
+                          error: (_, __) => WeeklyStreakWidget(completedDates: dates),
+                        ),
+                        loading: () => const SizedBox(height: 100, child: Center(child: CircularProgressIndicator())), 
+                        error: (err, _) => const SizedBox.shrink(),
+                      );
+                    },
+                  ),
 
-                // Browser Protection Card (Modified style)
-                _buildBlockerCard(),
 
-                const SizedBox(height: 24),
 
-                // Action Grid
-                Row(
-                  children: [
-                    Expanded(child: _buildActionButton(context, Icons.check_circle_outline, 'Daily Check-in', Colors.green)),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildActionButton(context, Icons.mosque, 'Islamic Corner', AppColors.primary)),
-                  ],
-                ),
-                const SizedBox(height: 40),
-              ],
+                  // Hero Streak Section
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => context.push('/progress'),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer Glow
+                          Container(
+                            width: 220,
+                            height: 220,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.15),
+                                  blurRadius: 40,
+                                  spreadRadius: 0,
+                                )
+                              ],
+                            ),
+                          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                           .scale(begin: const Offset(1, 1), end: const Offset(1.05, 1.05), duration: 2.seconds),
+                          
+                          // Ring
+                          Container(
+                            width: 200,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 2),
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary.withOpacity(0.1), Colors.transparent],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                          ),
+                          
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${profile.currentStreakDays}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 72, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: Colors.white,
+                                  height: 1.0,
+                                ),
+                              ),
+                              Text(
+                                'DAYS FREE', 
+                                style: TextStyle(
+                                  color: AppColors.primary, 
+                                  letterSpacing: 3, 
+                                  fontSize: 12, 
+                                  fontWeight: FontWeight.bold
+                                ),
+                              ),
+                              
+                              // Live Timer
+                              StreakTimerWidget(
+                                startDate: profile.startDate,
+                                isPaused: profile.currentStreakDays == 0,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Best Streak Pill
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Best Streak: ${profile.bestStreakDays} days',
+                        style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+                  
+                  // Calendar Link
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () => context.push('/progress'),
+                      icon: Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
+                      label: Text(
+                        'View Progress Calendar', 
+                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Panic Button (Redesigned)
+                  _buildPanicButton(context),
+                  
+                  const SizedBox(height: 24),
+
+                  // Motivation Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [const Color(0xFF2A2A2A), const Color(0xFF1F1F1F)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.format_quote_rounded, color: AppColors.primary, size: 30),
+                        const SizedBox(height: 8),
+                        Text(
+                          _dailyQuote,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate().slideY(begin: 0.1, end: 0, duration: 500.ms),
+
+                  const SizedBox(height: 24),
+
+                  // Browser Protection Card (Modified style)
+                  _buildBlockerCard(),
+
+                  const SizedBox(height: 24),
+
+                  // Action Grid
+                  Row(
+                    children: [
+                      Expanded(child: _buildActionButton(context, Icons.check_circle_outline, 'Daily Check-in', Colors.green)),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildActionButton(context, Icons.mosque, 'Islamic Corner', AppColors.primary)),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),

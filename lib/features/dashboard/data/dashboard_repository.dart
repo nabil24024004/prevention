@@ -8,6 +8,10 @@ final weeklyCheckInsProvider = FutureProvider<List<String>>((ref) async {
   return ref.watch(dashboardRepositoryProvider).getWeeklyCheckIns();
 });
 
+final weeklyRelapsesProvider = FutureProvider<List<String>>((ref) async {
+  return ref.watch(dashboardRepositoryProvider).getWeeklyRelapses();
+});
+
 class DashboardRepository {
   final SupabaseClient _client;
 
@@ -33,13 +37,13 @@ class DashboardRepository {
       'user_id': _userId,
       'trigger': trigger,
       'reflection': reflection,
-      'timestamp': DateTime.now().toIso8601String(),
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
     });
 
     // Reset streak by updating start_date to now
     await _client.from('users').update({
-      'start_date': DateTime.now().toIso8601String(),
-      'last_relapse_date': DateTime.now().toIso8601String(),
+      'start_date': DateTime.now().toUtc().toIso8601String(),
+      'last_relapse_date': DateTime.now().toUtc().toIso8601String(),
       'current_streak_days': 0,
     }).eq('id', _userId);
   }
@@ -53,6 +57,22 @@ class DashboardRepository {
       // Log security event
       await _logSecurityEvent('vpn_detected_during_checkin', {'vpn': 'external'});
       throw Exception('External VPN detected. Please disable VPN to maintain streak integrity.');
+    }
+
+    // Check current streak to see if we need to reset the timer
+    final userResponse = await _client
+        .from('users')
+        .select('current_streak_days')
+        .eq('id', _userId)
+        .single();
+    
+    final currentStreak = userResponse['current_streak_days'] as int;
+
+    // If streak is 0, this check-in marks the start of a new streak timer
+    if (currentStreak == 0) {
+      await _client.from('users').update({
+        'start_date': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', _userId);
     }
     
     // Call the server-side function to securely logs check-in and update streak
@@ -68,7 +88,6 @@ class DashboardRepository {
 
   Future<List<String>> getWeeklyCheckIns() async {
     final now = DateTime.now();
-    // Find previous Sunday (or today if Sunday)
     final startOfWeek = now.subtract(Duration(days: now.weekday % 7));
     final endOfWeek = startOfWeek.add(const Duration(days: 6));
     
@@ -84,5 +103,27 @@ class DashboardRepository {
         .eq('completed_checkin', true);
 
     return (response as List).map((e) => e['date'] as String).toList();
+  }
+
+  Future<List<String>> getWeeklyRelapses() async {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday % 7));
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    
+    // relapses store timestamp (timestamptz)
+    final startStr = startOfWeek.toUtc().toIso8601String();
+    final endStr = endOfWeek.add(const Duration(days: 1)).toUtc().toIso8601String(); // End of week + 1 day to catch all
+
+    final response = await _client
+        .from('relapses')
+        .select('timestamp')
+        .eq('user_id', _userId)
+        .gte('timestamp', startStr)
+        .lt('timestamp', endStr);
+
+    return (response as List).map((e) {
+      final ts = DateTime.parse(e['timestamp'] as String).toLocal();
+      return ts.toIso8601String().split('T')[0];
+    }).toList();
   }
 }

@@ -89,7 +89,11 @@ class MainActivity : FlutterActivity() {
 
     private fun startVpnService() {
         val intent = Intent(this, BlockerVpnService::class.java)
-        startService(intent)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
         setVpnRunning(this, true)
         Log.d(TAG, "VPN service started")
     }

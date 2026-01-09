@@ -6,8 +6,9 @@ import '../../../../core/theme/app_colors.dart';
 
 class WeeklyStreakWidget extends StatelessWidget {
   final List<String> completedDates;
+  final List<String> relapseDates;
 
-  const WeeklyStreakWidget({super.key, required this.completedDates});
+  const WeeklyStreakWidget({super.key, required this.completedDates, this.relapseDates = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +71,9 @@ class WeeklyStreakWidget extends StatelessWidget {
             children: weekDays.map((date) {
               final dateStr = date.toIso8601String().split('T')[0];
               final isCompleted = completedDates.contains(dateStr);
+              final isRelapse = relapseDates.contains(dateStr);
               final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
-              final isFuture = date.isAfter(now);
+              final isFuture = date.isAfter(now) && !isToday; // Ensure today is not future
               final dayName = DateFormat('E').format(date)[0]; // S, M, T...
 
               return Column(
@@ -85,7 +87,7 @@ class WeeklyStreakWidget extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildDayIndicator(isCompleted, isToday, isFuture),
+                  _buildDayIndicator(isCompleted, isRelapse, isToday, isFuture),
                 ],
               );
             }).toList(),
@@ -95,13 +97,31 @@ class WeeklyStreakWidget extends StatelessWidget {
     ).animate().slideY(begin: -0.2, end: 0, duration: 600.ms, curve: Curves.easeOutBack);
   }
 
-  Widget _buildDayIndicator(bool isCompleted, bool isToday, bool isFuture) {
-    if (isCompleted) {
+  Widget _buildDayIndicator(bool isCompleted, bool isRelapse, bool isToday, bool isFuture) {
+    if (isRelapse) {
       return Container(
         width: 32,
         height: 32,
         decoration: const BoxDecoration(
-          color: Colors.blue, // Using the blue from the prompt image
+          color: AppColors.error, // Red for relapse
+          shape: BoxShape.circle,
+          boxShadow: [
+             BoxShadow(
+              color: Color(0x66FF5252), 
+              blurRadius: 8, 
+              spreadRadius: 1,
+              offset: Offset(0, 2),
+            )
+          ]
+        ),
+        child: const Icon(Icons.close, color: Colors.white, size: 20),
+      ).animate().shake(duration: 400.ms); // Shake animation for negative event
+    } else if (isCompleted) {
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: const BoxDecoration(
+          color: Colors.blue, 
           shape: BoxShape.circle,
           boxShadow: [
              BoxShadow(
