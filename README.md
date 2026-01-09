@@ -272,9 +272,9 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/prevention/issues)
-- **Email**: support@prevention.app
-- **Discord**: [Community Server](https://discord.gg/prevention)
+- **Issues**: [GitHub Issues](https://abrarnabil.vercel.app/)
+- **Email**: azwadabrar109@gmail.com
+- **Dev Info**: [Azwad Abrar](https://abrarnabil.vercel.app/)
 
 ---
 
