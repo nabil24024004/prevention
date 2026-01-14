@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > A comprehensive Islamic mobile app for fighting pornography addiction through accountability, motivation, and DNS-based content blocking.  
-> **Current Version**: 2.5.0 beta release (January 9, 2026)
+> **Current Version**: 3.0.0 release (January 13, 2026)
 
 ---
 
