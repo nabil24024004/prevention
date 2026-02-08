@@ -172,6 +172,8 @@ MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "blocker")
     when (call.method) {
       "startVpn" -> startVpnService()
       "isRooted" -> result.success(TamperDetector.isRooted())
+      "startScreenPin" -> startLockTask() // Screen pinning for Panic Mode
+      "stopScreenPin" -> stopLockTask()
     }
   }
 ```
@@ -408,5 +410,5 @@ End Users (Android devices)
 
 ---
 
-**Version**: 2.5.0 beta release  
-**Last Updated**: January 9, 2026
+**Version**: 2.6.0 beta release  
+**Last Updated**: February 9, 2026

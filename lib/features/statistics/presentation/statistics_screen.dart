@@ -210,9 +210,15 @@ class StatisticsScreen extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text(
-                  'Error: $e',
-                  style: const TextStyle(color: AppColors.error),
+                error: (e, _) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.cloud_off, size: 36, color: Colors.grey[600]),
+                      const SizedBox(height: 12),
+                      Text('Offline', style: TextStyle(color: Colors.grey[400], fontSize: 16)),
+                    ],
+                  ),
                 ),
               ),
 

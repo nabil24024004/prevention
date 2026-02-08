@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,40 +10,70 @@ import 'widgets/calendar_widget.dart';
 
 // Provider for fetching progress data
 final progressDataProvider = FutureProvider<Map<DateTime, String>>((ref) async {
+  const cacheKey = 'cached_progress_events';
+  final prefs = await SharedPreferences.getInstance();
   final client = Supabase.instance.client;
-  final userId = client.auth.currentUser?.id;
-  if (userId == null) return {};
-
-  // Fetch daily logs
-  final logs = await client
-      .from('daily_log')
-      .select('date, mood')
-      .eq('user_id', userId)
-      .order('date');
-
-  // Fetch relapses
-  final relapses = await client
-      .from('relapses')
-      .select('timestamp')
-      .eq('user_id', userId);
-
-  final Map<DateTime, String> events = {};
-
-  // Mark check-in days as 'success'
-  for (final log in logs) {
-    final date = DateTime.parse(log['date']);
-    final normalizedDate = DateTime(date.year, date.month, date.day);
-    events[normalizedDate] = 'success';
+  
+  Map<DateTime, String> parseEvents(List<dynamic> logs, List<dynamic> relapses) {
+    final Map<DateTime, String> events = {};
+    for (final log in logs) {
+      final date = DateTime.parse(log['date']);
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      events[normalizedDate] = 'success';
+    }
+    for (final relapse in relapses) {
+      final date = DateTime.parse(relapse['timestamp']);
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      events[normalizedDate] = 'relapse';
+    }
+    return events;
   }
 
-  // Mark relapse days as 'relapse' (override check-ins)
-  for (final relapse in relapses) {
-    final date = DateTime.parse(relapse['timestamp']);
-    final normalizedDate = DateTime(date.year, date.month, date.day);
-    events[normalizedDate] = 'relapse';
+  // Helper to load from cache
+  Map<DateTime, String>? loadFromCache() {
+    final cachedStr = prefs.getString(cacheKey);
+    if (cachedStr != null) {
+      try {
+        final cached = jsonDecode(cachedStr) as Map<String, dynamic>;
+        final logs = cached['logs'] as List;
+        final relapses = cached['relapses'] as List;
+        return parseEvents(logs, relapses);
+      } catch (_) {}
+    }
+    return null;
   }
 
-  return events;
+  // Try to fetch fresh data
+  try {
+    final userId = client.auth.currentUser?.id;
+    if (userId == null) {
+      return loadFromCache() ?? {};
+    }
+
+    // Fetch daily logs
+    final logs = await client
+        .from('daily_log')
+        .select('date, mood')
+        .eq('user_id', userId)
+        .order('date');
+
+    // Fetch relapses
+    final relapses = await client
+        .from('relapses')
+        .select('timestamp')
+        .eq('user_id', userId);
+
+    // Cache the raw data
+    await prefs.setString(cacheKey, jsonEncode({
+      'logs': logs,
+      'relapses': relapses,
+    }));
+
+    return parseEvents(logs, relapses);
+  } catch (e) {
+    // On error (offline), fall back to cache
+    return loadFromCache() ?? {};
+  }
 });
 
 class ProgressScreen extends ConsumerStatefulWidget {
@@ -74,7 +106,14 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (err, _) => Center(
-          child: Text('Error: $err', style: TextStyle(color: AppColors.error)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud_off, size: 48, color: Colors.grey[600]),
+              const SizedBox(height: 16),
+              Text('Offline', style: TextStyle(color: Colors.grey[400], fontSize: 18)),
+            ],
+          ),
         ),
         data: (events) => Column(
           children: [

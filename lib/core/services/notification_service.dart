@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:math';
+import 'package:flutter/material.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -29,13 +30,23 @@ class NotificationService {
     );
 
     await _notifications.initialize(settings);
+    debugPrint('NotificationService initialized');
 
     // Request permissions specifically for Android 13+
+    await requestPermissions();
+  }
+
+  Future<void> requestPermissions() async {
     final androidImplementation = _notifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    await androidImplementation?.requestNotificationsPermission();
+    
+    final bool? granted = await androidImplementation?.requestNotificationsPermission();
+    debugPrint('Notification permission granted: $granted');
+    
+    // Also check for exact alarm permission which is required for scheduled notifications on Android 12+
+    await androidImplementation?.requestExactAlarmsPermission();
   }
 
   final List<String> _duasAndQuotes = [
@@ -61,65 +72,92 @@ class NotificationService {
     "Jannah is worth the struggle.",
   ];
 
+  /// Shows an immediate notification with a random motivation.
+  /// Intended to be called when the app is opened/resumed.
+  Future<void> showMotivationalNotification() async {
+    try {
+      final randomQuote = _duasAndQuotes[Random().nextInt(_duasAndQuotes.length)];
+      
+      const androidDetails = AndroidNotificationDetails(
+        'immediate_motivation_channel',
+        'Instant Motivation',
+        channelDescription: 'Motivational quotes shown on app open',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+      
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: DarwinNotificationDetails(),
+      );
+
+      await _notifications.show(
+        999, // Fixed ID for instant notifications, replaces previous
+        'Daily Reminder',
+        randomQuote,
+        details,
+      );
+      debugPrint('Instant motivational notification shown');
+    } catch (e) {
+      debugPrint('Error showing immediate notification: $e');
+    }
+  }
+
   Future<void> scheduleDailyNotifications() async {
-    // Cancel existing to avoid duplicates
-    await _notifications.cancelAll();
+    try {
+      // Cancel existing to avoid duplicates
+      await _notifications.cancelAll();
+      debugPrint('Cancelled all previous notifications');
 
-    // Schedule 3 notifications per day (every 8 hours approx)
-    // For simplicity, we'll schedule a recurring notification interval or just periodic.
-    // Periodic is limited on Android.
-    // Better to schedule a few discrete times or use `periodicallyShow` with RepeatInterval.everyMinute for testing?
-    // No, RepeatInterval.daily is too slow. RepeatInterval is limited.
-    // Let's use zonedSchedule for 8am, 4pm, 12am roughly?
-    // Or just "Every 8 hours" using RepeatInterval? local_notifications doesn't have "Every 8 hours".
-    // It has `everyMinute`, `hourly`, `daily`, `weekly`.
-
-    // So we will schedule 3 fixed times for "Daily" checks.
-    // 8:00 AM
-    // 4:00 PM
-    // 9:00 PM
-
-    await _scheduleAtTime(8, 0, 1);
-    await _scheduleAtTime(16, 0, 2);
-    await _scheduleAtTime(21, 0, 3);
+      // Schedule 3 notifications per day
+      await _scheduleAtTime(8, 0, 1);
+      await _scheduleAtTime(16, 0, 2);
+      await _scheduleAtTime(21, 0, 3);
+      debugPrint('Scheduled daily notifications');
+    } catch (e) {
+      debugPrint('Error scheduling notifications: $e');
+    }
   }
 
   Future<void> _scheduleAtTime(int hour, int minute, int id) async {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
+    try {
+      final now = tz.TZDateTime.now(tz.local);
+      var scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
 
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
 
-    // Pick a random quote
-    final randomQuote = _duasAndQuotes[Random().nextInt(_duasAndQuotes.length)];
+      final randomQuote = _duasAndQuotes[Random().nextInt(_duasAndQuotes.length)];
 
-    await _notifications.zonedSchedule(
-      id,
-      'Daily Reminder',
-      randomQuote,
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_motivation_channel',
-          'Daily Motivation',
-          channelDescription: 'Motivational quotes and duas',
-          importance: Importance.max,
-          priority: Priority.high,
+      await _notifications.zonedSchedule(
+        id,
+        'Daily Reminder',
+        randomQuote,
+        scheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'daily_motivation_channel',
+            'Daily Motivation',
+            channelDescription: 'Motivational quotes and duas',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
         ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents:
-          DateTimeComponents.time, // Repeats every day at this time
-    );
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+      debugPrint('Scheduled notification $id for $scheduledDate');
+    } catch (e) {
+      debugPrint('Error scheduling notification $id: $e');
+    }
   }
 }

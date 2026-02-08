@@ -21,6 +21,8 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   bool _alreadyCheckedIn = false;
   bool _hasRelapsedToday = false;
 
+  bool _isOffline = false;
+
   @override
   void initState() {
     super.initState();
@@ -28,19 +30,78 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   }
 
   Future<void> _checkStatus() async {
-    final checkedIn = await ref.read(dashboardRepositoryProvider).hasCheckedInToday();
-    final relapsed = await ref.read(dashboardRepositoryProvider).hasRelapsedToday();
-    
-    if (mounted) {
-      setState(() {
-        _alreadyCheckedIn = checkedIn;
-        _hasRelapsedToday = relapsed;
-      });
+    try {
+      // Check for internet by trying to fetch data
+      final checkedIn = await ref.read(dashboardRepositoryProvider).hasCheckedInToday();
+      final relapsed = await ref.read(dashboardRepositoryProvider).hasRelapsedToday();
+      
+      if (mounted) {
+        setState(() {
+          _alreadyCheckedIn = checkedIn;
+          _hasRelapsedToday = relapsed;
+          _isOffline = false;
+        });
+      }
+    } catch (e) {
+      // If fetch fails, assume offline
+      if (mounted) {
+        setState(() {
+          _isOffline = true;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isOffline) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.cloud_off, size: 64, color: AppColors.textSecondary),
+                const SizedBox(height: 16),
+                Text(
+                  'Offline Mode',
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Check-in is unavailable while offline.\nPlease connect to the internet to record your progress.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _checkStatus,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: Text(
+                    'Retry Connection',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -68,7 +129,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                       'DAILY ACCOUNTABILITY',
                       style: GoogleFonts.outfit(
                         color: AppColors.primary,
-                        fontSize: 12,
+                        fontSize: 14, // Bumped from 12
                         fontWeight: FontWeight.bold,
                         letterSpacing: 2,
                       ),
@@ -94,9 +155,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   Text(
                     'Your honesty builds your strength.',
                     style: GoogleFonts.outfit(
-                      color: Colors.grey[500],
+                      color: AppColors.textSecondary, // Changed from grey[500]
                       fontSize: 16,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w500, // Bumped from w400
                     ),
                   ).animate().fadeIn(delay: 300.ms),
 
@@ -232,7 +293,8 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                       Text(
                         'Come back tomorrow',
                         style: GoogleFonts.outfit(
-                          fontSize: 12,
+                          fontSize: 14, // Bumped from 12
+                          fontWeight: FontWeight.w500,
                           color: Colors.white70,
                         ),
                       ),
@@ -410,7 +472,11 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
               const Text(
                 'Your discipline is an inspiration.\nKeep moving forward.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 16),
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               
               const SizedBox(height: 40),

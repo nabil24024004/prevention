@@ -105,10 +105,10 @@ SELECT max(count) -- Current streak
 
 ---
 
-## 🚨 3. Panic Mode (Enhanced)
+## 🚨 3. Panic Mode with Screen Pinning Lockdown
 
 ### Description
-Emergency intervention tool designed to break the "trance" of temptation through time-locking and motivation.
+Emergency intervention tool designed to break the "trance" of temptation through time-locking, screen pinning, and motivation.
 
 ### Key Features
 
@@ -117,22 +117,68 @@ Emergency intervention tool designed to break the "trance" of temptation through
     - Prevents impulsive navigation away from help
     - Disables "I AM CALM NOW" button until timer ends
 
-2.  **Visual Motivation**:
+2.  **Screen Pinning Lockdown (Android)**:
+    - Uses Android's native `startLockTask()` API
+    - Blocks Home, Recents, and Back buttons
+    - User confirms once with "Pin this app?" prompt
+    - Exit requires holding Back + Recents together
+    - State persists across app restarts
+
+3.  **Visual Motivation**:
     - **Pulsing Warning**: Red gradient visual cue
     - **Streak Display**: Shows current streak to leverage loss aversion ("Don't break your streak of X days")
     - **Future Warning**: "One moment of weakness isn't worth losing this progress"
 
-3.  **Spiritual Grounding**:
+4.  **Spiritual Grounding**:
     - Random Islamic Duas displayed
     - Prompt to read aloud
 
 ### Technical Implementation
 
-**Client** (`PanicModeScreen.dart`):
-- `Timer.periodic` for 300s countdown
-- `PopScope(canPop: false)` disables Android back button
-- `SystemChrome` (future) to lock task switching
-- Fetches live streak data from `user_repository`
+| Layer | Component | Purpose |
+|-------|-----------|---------|
+| **Flutter** | `blocker_repository.dart` | Persists panic end time, calls screen pin |
+| **Flutter** | `main.dart` | Checks for active panic on app startup |
+| **Flutter** | `router.dart` | Redirects to panic screen if panic is active (priority over auth) |
+| **Flutter** | `panic_mode_screen.dart` | 5-min timer, restores on restart |
+| **Android** | `MainActivity.kt` | `startLockTask()` / `stopLockTask()` handlers |
+| **Android** | `AndroidManifest.xml` | `REORDER_TASKS` permission |
+
+**Screen Pinning Flow**:
+```
+User taps "PANIC MODE" button
+        ↓
+setPanicModeActive(300) called
+        ↓
+1. Save end timestamp to SharedPreferences
+2. Call native setPanicLockdown(true)
+3. Call startLockTask() → Android prompts "Pin this app?"
+        ↓
+User taps "Start" on Android dialog
+        ↓
+App is now pinned - Home/Back/Recents blocked
+        ↓
+Timer counts down (persists if app killed)
+        ↓
+Timer hits 0 → clearPanicMode() called
+        ↓
+1. Stop screen pin via stopLockTask()
+2. Clear SharedPreferences
+3. Navigate back to dashboard
+```
+
+**Persistence Across Restart**:
+```dart
+// In main.dart
+final panicSecondsRemaining = await blockerRepository.getPanicSecondsRemaining();
+if (panicSecondsRemaining > 0) {
+  // Resume on panic screen with remaining time
+}
+```
+
+### Limitations
+
+> **Note**: Without Device Owner privileges (requires ADB setup), true Kiosk Mode is not possible. Screen Pinning is the strongest consumer-friendly lockdown available. Users can exit by holding Back + Recents buttons together.
 
 ---
 
@@ -398,5 +444,5 @@ All security events logged:
 
 ---
 
-**Version**: 2.5.0 beta release  
-**Last Updated**: January 9, 2026
+**Version**: 2.6.0 beta release  
+**Last Updated**: February 9, 2026

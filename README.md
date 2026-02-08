@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > A comprehensive Islamic mobile app for fighting pornography addiction through accountability, motivation, and DNS-based content blocking.  
-> **Current Version**: 3.0.0 release (January 13, 2026)
+> **Current Version**: 2.5.0 beta release (January 9, 2026)
 
 ---
 
@@ -272,9 +272,9 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://abrarnabil.vercel.app/)
-- **Email**: azwadabrar109@gmail.com
-- **Dev Info**: [Azwad Abrar](https://abrarnabil.vercel.app/)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/prevention/issues)
+- **Email**: support@prevention.app
+- **Discord**: [Community Server](https://discord.gg/prevention)
 
 ---
 

@@ -27,4 +27,15 @@ class UserProfile {
       bestStreakDays: json['best_streak_days'] ?? 0,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'start_date': startDate.toIso8601String(),
+      'last_relapse_date': lastRelapseDate?.toIso8601String(),
+      'current_streak_days': currentStreakDays,
+      'best_streak_days': bestStreakDays,
+    };
+  }
 }

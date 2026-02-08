@@ -123,6 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               textAlign: TextAlign.center,
                               style: GoogleFonts.outfit(
                                 fontSize: 18,
+                                fontWeight: FontWeight.w500, // Thicker font
                                 color: AppColors.textSecondary,
                                 height: 1.5,
                               ),
@@ -169,8 +170,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         child: Text(
                           'Skip',
                           style: GoogleFonts.outfit(
-                            color: Colors.white54,
+                            color: Colors.white70, // brighter than white54
                             fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),

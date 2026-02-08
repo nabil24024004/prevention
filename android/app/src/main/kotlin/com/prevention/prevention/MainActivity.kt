@@ -16,6 +16,7 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val PREFS_NAME = "vpn_state"
         private const val KEY_VPN_RUNNING = "is_vpn_running"
+        private const val KEY_PANIC_LOCKDOWN = "is_panic_lockdown"
         
         fun setVpnRunning(context: Context, running: Boolean) {
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -28,6 +29,19 @@ class MainActivity : FlutterActivity() {
         fun isVpnRunning(context: Context): Boolean {
             return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .getBoolean(KEY_VPN_RUNNING, false)
+        }
+        
+        fun setPanicLockdown(context: Context, active: Boolean) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_PANIC_LOCKDOWN, active)
+                .apply()
+            Log.d("MainActivity", "Panic lockdown state: $active")
+        }
+        
+        fun isPanicLockdown(context: Context): Boolean {
+            return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_PANIC_LOCKDOWN, false)
         }
     }
 
@@ -82,6 +96,34 @@ class MainActivity : FlutterActivity() {
                     val status = TamperDetector.getTamperStatus(this)
                     result.success(status)
                 }
+                "setPanicLockdown" -> {
+                    val active = call.argument<Boolean>("active") ?: false
+                    setPanicLockdown(this, active)
+                    Log.d(TAG, "setPanicLockdown called: $active")
+                    result.success(true)
+                }
+                "startScreenPin" -> {
+                    // Start screen pinning (task lock) - user will be prompted to confirm
+                    Log.d(TAG, "startScreenPin called")
+                    try {
+                        startLockTask()
+                        result.success(true)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "startScreenPin failed: ${e.message}")
+                        result.error("LOCK_TASK_ERROR", e.message, null)
+                    }
+                }
+                "stopScreenPin" -> {
+                    // Stop screen pinning
+                    Log.d(TAG, "stopScreenPin called")
+                    try {
+                        stopLockTask()
+                        result.success(true)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "stopScreenPin failed: ${e.message}")
+                        result.error("UNLOCK_TASK_ERROR", e.message, null)
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
@@ -109,5 +151,28 @@ class MainActivity : FlutterActivity() {
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // onUserLeaveHint is called when user presses home button
+        // Use Handler with delay to bring app back after system processes the home action
+        if (isPanicLockdown(this)) {
+            Log.d(TAG, "Panic lockdown active - blocking home button")
+            android.os.Handler(mainLooper).postDelayed({
+                val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                activityManager.moveTaskToFront(taskId, android.app.ActivityManager.MOVE_TASK_WITH_HOME)
+                Log.d(TAG, "Brought app back to foreground")
+            }, 100) // Small delay to let system process first
+        }
+    }
+
+    override fun onBackPressed() {
+        // Block back button during panic lockdown
+        if (isPanicLockdown(this)) {
+            Log.d(TAG, "Panic lockdown active - blocking back button")
+            return // Do nothing
+        }
+        super.onBackPressed()
     }
 }

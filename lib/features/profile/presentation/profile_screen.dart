@@ -26,7 +26,22 @@ class ProfileScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (err, stack) => Center(
-          child: Text('Error: $err', style: TextStyle(color: AppColors.error)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud_off, size: 48, color: Colors.grey[600]),
+              const SizedBox(height: 16),
+              Text(
+                'Offline',
+                style: TextStyle(color: Colors.grey[400], fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Connect to internet to view profile',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -126,7 +141,11 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       Text(
                         'Next Rank: ${RankSystem.titles[Rank.values[rank.index + 1]]}',
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Text(
                         '$daysToNext days left',
@@ -216,7 +235,7 @@ class ProfileScreen extends ConsumerWidget {
                   context,
                   icon: Icons.info_outline,
                   title: 'About Prevention',
-                  subtitle: 'Version 2.5.0 beta release',
+                  subtitle: 'Version 3.0 beta release | built by Abrar',
                   onTap: () {}, // Could show a dialog or page
                 ),
 
@@ -274,7 +293,14 @@ class ProfileScreen extends ConsumerWidget {
               color: Colors.white,
             ),
           ),
-          Text(label, style: TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -305,7 +331,7 @@ class ProfileScreen extends ConsumerWidget {
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       ),

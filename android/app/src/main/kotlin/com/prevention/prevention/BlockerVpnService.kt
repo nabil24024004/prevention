@@ -76,7 +76,8 @@ class BlockerVpnService : VpnService() {
             builder.addAddress("10.0.0.2", 32)
             
             // Route all traffic (but scoped to allowed apps)
-            builder.addRoute("0.0.0.0", 0)
+            // Route: None (Let traffic flow via WiFi/Mobile, but enforce DNS)
+            // builder.addRoute("0.0.0.0", 0) <-- REMOVED to fix blocking
             
             // Use Cloudflare Family DNS (Blocks Malware and Adult Content)
             builder.addDnsServer("1.1.1.3") 

@@ -82,20 +82,45 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
 
   late String _currentDua;
   // Timer related variables
-  int _secondsRemaining = 300; // 5 minutes
+  int _secondsRemaining = 180; // 3 minutes default
   Timer? _timer;
   bool _canExit = false;
+
+  /// Duration for new panic sessions
+  static const int _panicDurationSeconds = 180; // 3 minutes
 
   @override
   void initState() {
     super.initState();
     _currentDua = _duas[Random().nextInt(_duas.length)];
+    _initPanicSession();
     _enableProtection();
+  }
+
+  Future<void> _initPanicSession() async {
+    final blockerRepo = ref.read(blockerRepositoryProvider);
+
+    // Check if we have persisted panic state (app was killed and restarted)
+    final persistedSeconds = await blockerRepo.getPanicSecondsRemaining();
+
+    if (persistedSeconds > 0) {
+      // Resume existing session
+      setState(() {
+        _secondsRemaining = persistedSeconds;
+      });
+    } else {
+      // Start new panic session - save to SharedPreferences
+      await blockerRepo.setPanicModeActive(_panicDurationSeconds);
+      setState(() {
+        _secondsRemaining = _panicDurationSeconds;
+      });
+    }
+
     _startTimer();
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (_secondsRemaining > 0) {
         if (mounted) {
           setState(() {
@@ -104,6 +129,8 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
         }
       } else {
         _timer?.cancel();
+        // Clear panic mode state
+        await ref.read(blockerRepositoryProvider).clearPanicMode();
         if (mounted) {
           setState(() {
             _canExit = true;
@@ -142,7 +169,7 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
       canPop: _canExit, // Prevent back button until timer ends
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-           ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Please wait until the panic timer ends.'),
               backgroundColor: AppColors.error,
@@ -160,20 +187,25 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
-                        colors: [AppColors.error.withOpacity(0.2), Colors.black],
+                        colors: [
+                          AppColors.error.withOpacity(0.2),
+                          Colors.black,
+                        ],
                         radius: 1.5,
                         center: Alignment.center,
                       ),
                     ),
                   ),
                 )
-                .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                .animate(
+                  onPlay: (controller) => controller.repeat(reverse: true),
+                )
                 .scale(
                   begin: const Offset(1, 1),
                   end: const Offset(1.1, 1.1),
                   duration: 2.seconds,
                 ),
-  
+
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -182,11 +214,16 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                   children: [
                     // Timer Display
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: AppColors.error.withOpacity(0.5)),
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.5),
+                        ),
                       ),
                       child: Text(
                         _formatTime(_secondsRemaining),
@@ -199,7 +236,7 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                     ).animate().fadeIn().scale(),
 
                     const SizedBox(height: 32),
-  
+
                     Text(
                       "EMERGENCY PROTECTION ACTIVE",
                       textAlign: TextAlign.center,
@@ -210,7 +247,7 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                         letterSpacing: 2,
                       ),
                     ).animate().fadeIn().slideY(begin: 0.2, end: 0),
-  
+
                     const SizedBox(height: 24),
 
                     // Motivational Stats Section
@@ -219,7 +256,10 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                         children: [
                           Text(
                             "Don't break your streak of",
-                            style: TextStyle(color: Colors.white70, fontSize: 16),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -235,59 +275,68 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                             "One moment of weakness isn't worth losing this progress.",
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: AppColors.secondary, 
-                              fontWeight: FontWeight.w500
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.w500,
                             ),
-                          )
+                          ),
                         ],
                       ).animate().fadeIn(delay: 300.ms),
                       loading: () => const CircularProgressIndicator(),
                       error: (_, __) => const SizedBox(),
                     ),
-  
+
                     const SizedBox(height: 32),
-  
+
                     Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A1A),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white10),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            "Read this out loud:",
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
-                            ),
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1A1A1A),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white10),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _currentDua,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w500,
-                              height: 1.4,
-                            ),
+                          child: Column(
+                            children: [
+                              Text(
+                                "Read this out loud:",
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _currentDua,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1, end: 0),
-  
+                        )
+                        .animate()
+                        .fadeIn(delay: 600.ms)
+                        .slideY(begin: 0.1, end: 0),
+
                     const Spacer(),
-  
+
                     // Future Warning
                     if (!_canExit)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Text(
-                          "Wait for the storm to pass...",
-                          style: TextStyle(color: Colors.white54, fontStyle: FontStyle.italic),
-                        ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 2.seconds),
+                        child:
+                            Text(
+                                  "Wait for the storm to pass...",
+                                  style: TextStyle(
+                                    color: Colors.white54,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                )
+                                .animate(onPlay: (c) => c.repeat())
+                                .shimmer(duration: 2.seconds),
                       ),
 
                     SizedBox(
@@ -295,15 +344,21 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                       height: 56,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _canExit ? Colors.white : Colors.grey[800],
-                          foregroundColor: _canExit ? Colors.black : Colors.white38,
+                          backgroundColor: _canExit
+                              ? Colors.white
+                              : Colors.grey[800],
+                          foregroundColor: _canExit
+                              ? Colors.black
+                              : Colors.white38,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         onPressed: _canExit ? () => context.pop() : null,
                         child: Text(
-                          _canExit ? "I AM CALM NOW" : "LOCKED (${_formatTime(_secondsRemaining)})",
+                          _canExit
+                              ? "I AM CALM NOW"
+                              : "LOCKED (${_formatTime(_secondsRemaining)})",
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

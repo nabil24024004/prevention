@@ -54,7 +54,7 @@ class ContentList extends ConsumerWidget {
       data: (items) {
         if (items.isEmpty) return const Center(child: Text('No content yet.'));
         return ListView.separated(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 100),
           itemCount: items.length,
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
@@ -92,6 +92,7 @@ class ContentList extends ConsumerWidget {
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -104,7 +105,19 @@ class ContentList extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      error: (err, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cloud_off, size: 48, color: Colors.grey[600]),
+            const SizedBox(height: 16),
+            Text('Offline', style: TextStyle(color: Colors.grey[400], fontSize: 18)),
+            const SizedBox(height: 8),
+            Text('Connect to internet to load content', 
+              style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -23,8 +23,10 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool _isBlockerActive = false;
+  bool _isOffline = false;
 
   // Dashboard motivation
+  late String _dailyQuote;
   final List<String> _dashboardQuotes = [
     "Indeed, the soul constantly commands toward evil—except those shown mercy by Allah. (Quran 12:53)",
     "The soul and the One who fashioned it, and inspired it with wickedness and righteousness. (Quran 91:7,8)",
@@ -76,17 +78,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     "Remembering Allah weakens the nafs. (Reflective)",
     "Purifying the soul is the path to peace. ( 91:9)",
   ];
-  late String _dailyQuote;
 
   @override
   void initState() {
     super.initState();
     _checkBlockerStatus();
+    _checkConnectivity();
     _dailyQuote = _dashboardQuotes[Random().nextInt(_dashboardQuotes.length)];
     // Ensure streak is accurate on load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(dashboardRepositoryProvider).recalculateStreak();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(dashboardRepositoryProvider).recalculateStreak();
+      // Force refresh profile to sync start_date and other fields
+      await ref.read(userRepositoryProvider).refreshProfile();
+      // Restart the stream to pick up the updated cache
+      if (mounted) {
+        ref.invalidate(userProfileStreamProvider);
+      }
     });
+  }
+
+  Future<void> _checkConnectivity() async {
+    try {
+      await ref.read(dashboardRepositoryProvider).hasCheckedInToday();
+      if (mounted) setState(() => _isOffline = false);
+    } catch (_) {
+      if (mounted) setState(() => _isOffline = true);
+    }
   }
 
   Future<void> _checkBlockerStatus() async {
@@ -153,12 +170,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Scaffold(
       backgroundColor: Colors.black, // Dark background
       body: userProfileAsync.when(
-        data: (profile) => _buildDashboard(context, profile),
+        data: (profile) => Stack(
+          children: [
+            _buildDashboard(context, profile),
+            if (_isOffline)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 10,
+                left: 20,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.cloud_off, color: Colors.white, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Offline Mode - Showing cached data',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn().slideY(begin: -1, end: 0),
+              ),
+          ],
+        ),
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (err, stack) => Center(
-          child: Text('Error: $err', style: TextStyle(color: AppColors.error)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud_off, size: 48, color: Colors.grey[600]),
+              const SizedBox(height: 16),
+              Text('Offline', style: TextStyle(color: Colors.grey[400], fontSize: 18)),
+              const SizedBox(height: 8),
+              Text('Connect to internet to sync data', 
+                style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+            ],
+          ),
         ),
       ),
     );

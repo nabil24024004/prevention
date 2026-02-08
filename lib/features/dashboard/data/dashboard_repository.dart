@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../blocking/data/blocker_repository.dart';
 
@@ -54,15 +56,17 @@ class DashboardRepository {
       'timestamp': DateTime.now().toUtc().toIso8601String(),
     });
 
-    // Reset streak by updating start_date to now
+    // Reset streak (but NOT start_date - that's the permanent journey start)
     await _client
         .from('users')
         .update({
-          'start_date': DateTime.now().toUtc().toIso8601String(),
           'last_relapse_date': DateTime.now().toUtc().toIso8601String(),
           'current_streak_days': 0,
         })
         .eq('id', _userId);
+    
+    // Debug: log that update was called
+    print('[DashboardRepository] Relapse logged. current_streak_days set to 0 for user $_userId');
   }
 
   Future<void> logDailyCheckIn({required String mood, String? notes}) async {
@@ -138,57 +142,88 @@ class DashboardRepository {
   }
 
   Future<List<String>> getWeeklyCheckIns() async {
-    final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday % 7));
-    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    const cacheKey = 'cached_weekly_checkins';
+    final prefs = await SharedPreferences.getInstance();
+    
+    try {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      // Use last 7 days (matching the chart) instead of calendar week
+      final startDate = today.subtract(const Duration(days: 6));
+      final endDate = today;
 
-    final startStr = startOfWeek.toIso8601String().split('T')[0];
-    final endStr = endOfWeek.toIso8601String().split('T')[0];
+      final startStr = startDate.toIso8601String().split('T')[0];
+      final endStr = endDate.toIso8601String().split('T')[0];
 
-    final response = await _client
-        .from('daily_log')
-        .select('date')
-        .eq('user_id', _userId)
-        .gte('date', startStr)
-        .lte('date', endStr)
-        .eq('completed_checkin', true);
+      final response = await _client
+          .from('daily_log')
+          .select('date')
+          .eq('user_id', _userId)
+          .gte('date', startStr)
+          .lte('date', endStr)
+          .eq('completed_checkin', true);
 
-    return (response as List).map((e) => e['date'] as String).toList();
+      final result = (response as List).map((e) => e['date'] as String).toList();
+      await prefs.setStringList(cacheKey, result);
+      return result;
+    } catch (e) {
+      return prefs.getStringList(cacheKey) ?? [];
+    }
   }
 
   Future<List<String>> getWeeklyRelapses() async {
-    final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday % 7));
-    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    const cacheKey = 'cached_weekly_relapses';
+    final prefs = await SharedPreferences.getInstance();
+    
+    try {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      // Use last 7 days (matching the chart) instead of calendar week
+      final startDate = today.subtract(const Duration(days: 6));
+      final endDate = today.add(const Duration(days: 1)); // Include today
 
-    // relapses store timestamp (timestamptz)
-    final startStr = startOfWeek.toUtc().toIso8601String();
-    final endStr = endOfWeek
-        .add(const Duration(days: 1))
-        .toUtc()
-        .toIso8601String(); // End of week + 1 day to catch all
+      final startStr = startDate.toUtc().toIso8601String();
+      final endStr = endDate.toUtc().toIso8601String();
 
-    final response = await _client
-        .from('relapses')
-        .select('timestamp')
-        .eq('user_id', _userId)
-        .gte('timestamp', startStr)
-        .lt('timestamp', endStr);
+      final response = await _client
+          .from('relapses')
+          .select('timestamp')
+          .eq('user_id', _userId)
+          .gte('timestamp', startStr)
+          .lt('timestamp', endStr);
 
-    return (response as List).map((e) {
-      final ts = DateTime.parse(e['timestamp'] as String).toLocal();
-      return ts.toIso8601String().split('T')[0];
-    }).toList();
+      final result = (response as List).map((e) {
+        final ts = DateTime.parse(e['timestamp'] as String).toLocal();
+        return ts.toIso8601String().split('T')[0];
+      }).toList();
+      await prefs.setStringList(cacheKey, result);
+      return result;
+    } catch (e) {
+      return prefs.getStringList(cacheKey) ?? [];
+    }
   }
 
   Future<List<Map<String, dynamic>>> getRelapseHistory({int limit = 10}) async {
-    final response = await _client
-        .from('relapses')
-        .select('timestamp, trigger, reflection')
-        .eq('user_id', _userId)
-        .order('timestamp', ascending: false)
-        .limit(limit);
+    const cacheKey = 'cached_relapse_history';
+    final prefs = await SharedPreferences.getInstance();
+    
+    try {
+      final response = await _client
+          .from('relapses')
+          .select('timestamp, trigger, reflection')
+          .eq('user_id', _userId)
+          .order('timestamp', ascending: false)
+          .limit(limit);
 
-    return List<Map<String, dynamic>>.from(response);
+      final result = List<Map<String, dynamic>>.from(response);
+      await prefs.setString(cacheKey, jsonEncode(result));
+      return result;
+    } catch (e) {
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        return (jsonDecode(cached) as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    }
   }
 }

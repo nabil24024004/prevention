@@ -14,10 +14,22 @@ import '../presentation/main_scaffold.dart';
 import '../../features/checkin/presentation/checkin_screen.dart';
 import '../../features/statistics/presentation/statistics_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/blocking/data/blocker_repository.dart';
 
-GoRouter createRouter(bool isFirstLaunch) {
+GoRouter createRouter(
+  bool isFirstLaunch, {
+  bool isPanicActive = false,
+  int panicSecondsRemaining = 0,
+}) {
+  // Store panic state for access in panic screen
+  if (isPanicActive) {
+    BlockerRepository.cachedPanicSeconds = panicSecondsRemaining;
+  }
+
   return GoRouter(
-    initialLocation: isFirstLaunch ? '/onboarding' : '/dashboard',
+    initialLocation: isPanicActive
+        ? '/panic-mode'
+        : (isFirstLaunch ? '/onboarding' : '/dashboard'),
     redirect: (context, state) {
       final session = Supabase.instance.client.auth.currentSession;
       final isAuthRoute =
@@ -25,6 +37,17 @@ GoRouter createRouter(bool isFirstLaunch) {
           state.matchedLocation == '/signup' ||
           state.matchedLocation == '/welcome' ||
           state.matchedLocation == '/onboarding';
+      final isPanicRoute = state.matchedLocation == '/panic-mode';
+
+      // If panic mode is active, ALWAYS stay on panic screen (takes priority over auth)
+      if (isPanicActive && !isPanicRoute) {
+        return '/panic-mode';
+      }
+
+      // If on panic route (perhaps resumed), don't redirect away
+      if (isPanicRoute && isPanicActive) {
+        return null;
+      }
 
       if (session == null) {
         return isAuthRoute ? null : '/welcome';
