@@ -235,7 +235,7 @@ class ProfileScreen extends ConsumerWidget {
                   context,
                   icon: Icons.info_outline,
                   title: 'About Prevention',
-                  subtitle: 'Version 3.0 beta release | built by Abrar',
+                  subtitle: 'Version 5.0 Stable release | built by A. Abrar',
                   onTap: () {}, // Could show a dialog or page
                 ),
 
