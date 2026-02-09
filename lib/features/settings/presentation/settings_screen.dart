@@ -132,33 +132,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 32),
 
           // Sign Out
-          Card(
-            color: AppColors.surface,
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              leading: Icon(Icons.logout, color: AppColors.error),
-              title: Text(
-                'Sign Out',
-                style: TextStyle(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.w500,
+          InkWell(
+            onTap: () async {
+              await Supabase.instance.client.auth.signOut();
+              if (context.mounted) context.go('/login');
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.error.withOpacity(0.15),
+                    AppColors.error.withOpacity(0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.error.withOpacity(0.3),
+                  width: 1,
                 ),
               ),
-              subtitle: Text(
-                'Log out of your account',
-                style: TextStyle(color: AppColors.textSecondary),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.logout_rounded, color: AppColors.error, size: 22),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
               ),
-              trailing: const Icon(
-                Icons.chevron_right,
-                color: AppColors.textSecondary,
-              ),
-              onTap: () async {
-                await Supabase.instance.client.auth.signOut();
-                if (context.mounted) context.go('/login');
-              },
             ),
           ),
         ],

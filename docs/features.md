@@ -227,6 +227,9 @@ Curated collection of Quranic verses, Hadith, and Islamic guidance related to pu
 
 ### User Experience
 
+- **Swipeable Carousels**: Duas and quotes displayed in horizontally swipeable PageView widgets
+- **Random Start**: Carousel starts at a random position on each load
+- **Page Indicators**: Animated dot indicators show current position and total items
 - Browse by category
 - Daily rotation of highlighted content
 - Bookmark favorites
@@ -444,5 +447,5 @@ All security events logged:
 
 ---
 
-**Version**: 2.6.0 beta release  
+**Version**: 5.0.0 Stable Release  
 **Last Updated**: February 9, 2026

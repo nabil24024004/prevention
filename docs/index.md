@@ -138,5 +138,5 @@ To improve documentation:
 
 ---
 
-**Last Updated**: January 9, 2026  
-**Version**: 2.5.0 beta release
+**Last Updated**: February 9, 2026  
+**Version**: 5.0.0 Stable Release

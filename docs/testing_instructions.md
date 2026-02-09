@@ -1,4 +1,4 @@
-# Testing Instructions - 2.5.0 beta release
+# Testing Instructions - 5.0.0 Stable Release
 
 ## 🎯 Welcome Beta Tester!
 
@@ -190,5 +190,5 @@ Thank you for helping test the **Prevention** app. This guide will walk you thro
 
 ---
 
-**Version**: 2.5.0 beta release  
-**Last Updated**: January 9, 2026
+**Version**: 5.0.0 Stable Release  
+**Last Updated**: February 9, 2026

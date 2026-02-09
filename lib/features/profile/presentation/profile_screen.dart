@@ -235,20 +235,56 @@ class ProfileScreen extends ConsumerWidget {
                   context,
                   icon: Icons.info_outline,
                   title: 'About Prevention',
-                  subtitle: 'Version 5.0 Stable release | built by A. Abrar',
-                  onTap: () {}, // Could show a dialog or page
+                  subtitle: 'Version 5.0 Stable release',
+                  onTap: () => context.push('/about'),
                 ),
 
                 const SizedBox(height: 20),
                 Center(
-                  child: TextButton(
-                    onPressed: () async {
+                  child: InkWell(
+                    onTap: () async {
                       await Supabase.instance.client.auth.signOut();
                       if (context.mounted) context.go('/welcome');
                     },
-                    child: Text(
-                      'Sign Out',
-                      style: TextStyle(color: AppColors.error),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.error.withOpacity(0.15),
+                            AppColors.error.withOpacity(0.08),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.logout_rounded,
+                            color: AppColors.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Sign Out',
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -25,8 +25,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool _isBlockerActive = false;
   bool _isOffline = false;
 
-  // Dashboard motivation
-  late String _dailyQuote;
+  // Dashboard motivation carousel
+  late PageController _quotePageController;
+  int _quotePageIndex = 0;
   final List<String> _dashboardQuotes = [
     "Indeed, the soul constantly commands toward evil—except those shown mercy by Allah. (Quran 12:53)",
     "The soul and the One who fashioned it, and inspired it with wickedness and righteousness. (Quran 91:7,8)",
@@ -84,7 +85,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     super.initState();
     _checkBlockerStatus();
     _checkConnectivity();
-    _dailyQuote = _dashboardQuotes[Random().nextInt(_dashboardQuotes.length)];
+    // Start at a random quote
+    _quotePageIndex = Random().nextInt(_dashboardQuotes.length);
+    _quotePageController = PageController(initialPage: _quotePageIndex);
     // Ensure streak is accurate on load
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(dashboardRepositoryProvider).recalculateStreak();
@@ -95,6 +98,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ref.invalidate(userProfileStreamProvider);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _quotePageController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkConnectivity() async {
@@ -179,7 +188,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 left: 20,
                 right: 20,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.red.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(20),
@@ -195,7 +207,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.cloud_off, color: Colors.white, size: 16),
+                      const Icon(
+                        Icons.cloud_off,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Offline Mode - Showing cached data',
@@ -220,10 +236,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             children: [
               Icon(Icons.cloud_off, size: 48, color: Colors.grey[600]),
               const SizedBox(height: 16),
-              Text('Offline', style: TextStyle(color: Colors.grey[400], fontSize: 18)),
+              Text(
+                'Offline',
+                style: TextStyle(color: Colors.grey[400], fontSize: 18),
+              ),
               const SizedBox(height: 8),
-              Text('Connect to internet to sync data', 
-                style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+              Text(
+                'Connect to internet to sync data',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
             ],
           ),
         ),
@@ -490,13 +511,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Motivation Card (Compacted)
+                  // Motivation Card (Swipeable)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFF2A2A2A), Color(0xFF1F1F1F)],
@@ -507,21 +524,90 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       border: Border.all(color: Colors.white.withOpacity(0.05)),
                     ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.format_quote_rounded,
-                          color: AppColors.primary,
-                          size: 24,
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.format_quote_rounded,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Swipe for wisdom",
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _dailyQuote,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FontStyle.italic,
+                        SizedBox(
+                          height: 85,
+                          child: PageView.builder(
+                            controller: _quotePageController,
+                            itemCount: _dashboardQuotes.length,
+                            onPageChanged: (index) {
+                              setState(() => _quotePageIndex = index);
+                            },
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    _dashboardQuotes[index],
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.outfit(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        // Page indicators
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12, top: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              _dashboardQuotes.length > 10
+                                  ? 10
+                                  : _dashboardQuotes.length,
+                              (index) {
+                                final realIndex = _quotePageIndex < 5
+                                    ? index
+                                    : (_quotePageIndex >
+                                              _dashboardQuotes.length - 6
+                                          ? _dashboardQuotes.length - 10 + index
+                                          : _quotePageIndex - 5 + index);
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
+                                  width: _quotePageIndex == realIndex ? 14 : 5,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(3),
+                                    color: _quotePageIndex == realIndex
+                                        ? AppColors.primary
+                                        : Colors.white24,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ],

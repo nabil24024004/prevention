@@ -15,6 +15,7 @@ import '../../features/checkin/presentation/checkin_screen.dart';
 import '../../features/statistics/presentation/statistics_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/blocking/data/blocker_repository.dart';
+import '../../features/about/presentation/about_screen.dart';
 
 GoRouter createRouter(
   bool isFirstLaunch, {
@@ -121,6 +122,7 @@ GoRouter createRouter(
         path: '/panic-mode',
         builder: (context, state) => const PanicModeScreen(),
       ),
+      GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
     ],
   );
 }

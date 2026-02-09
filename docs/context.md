@@ -312,5 +312,5 @@ Pornography addiction has become a widespread issue affecting millions globally,
 
 ---
 
-**Version**: 2.5.0 beta release  
-**Last Updated**: January 9, 2026
+**Version**: 5.0.0 Stable Release  
+**Last Updated**: February 9, 2026

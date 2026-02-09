@@ -80,19 +80,24 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
     "Purifying the soul is the path to peace. ( 91:9)",
   ];
 
-  late String _currentDua;
+  // Dua carousel
+  late PageController _duaPageController;
+  int _duaPageIndex = 0;
+
   // Timer related variables
-  int _secondsRemaining = 180; // 3 minutes default
+  int _secondsRemaining = 240; // 4 minutes default
   Timer? _timer;
   bool _canExit = false;
 
   /// Duration for new panic sessions
-  static const int _panicDurationSeconds = 180; // 3 minutes
+  static const int _panicDurationSeconds = 240; // 4 minutes
 
   @override
   void initState() {
     super.initState();
-    _currentDua = _duas[Random().nextInt(_duas.length)];
+    // Start at a random dua
+    _duaPageIndex = Random().nextInt(_duas.length);
+    _duaPageController = PageController(initialPage: _duaPageIndex);
     _initPanicSession();
     _enableProtection();
   }
@@ -140,12 +145,6 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   String _formatTime(int seconds) {
     final int minutes = seconds ~/ 60;
     final int remainingSeconds = seconds % 60;
@@ -159,6 +158,13 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
     } catch (e) {
       debugPrint('Failed to auto-enable protection: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _duaPageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -288,30 +294,107 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                     const SizedBox(height: 32),
 
                     Container(
-                          padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             color: const Color(0xFF1A1A1A),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: Colors.white10),
                           ),
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                "Read this out loud:",
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 12,
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  20,
+                                  24,
+                                  8,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.format_quote_rounded,
+                                      color: AppColors.secondary,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Swipe for reflection",
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _currentDua,
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.outfit(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.4,
+                              SizedBox(
+                                height: 110,
+                                child: PageView.builder(
+                                  controller: _duaPageController,
+                                  itemCount: _duas.length,
+                                  onPageChanged: (index) {
+                                    setState(() => _duaPageIndex = index);
+                                  },
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          _duas[index],
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.outfit(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              // Page indicators
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: 16,
+                                  top: 8,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    _duas.length > 10 ? 10 : _duas.length,
+                                    (index) {
+                                      final realIndex = _duaPageIndex < 5
+                                          ? index
+                                          : (_duaPageIndex > _duas.length - 6
+                                                ? _duas.length - 10 + index
+                                                : _duaPageIndex - 5 + index);
+                                      return AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 3,
+                                        ),
+                                        width: _duaPageIndex == realIndex
+                                            ? 16
+                                            : 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            3,
+                                          ),
+                                          color: _duaPageIndex == realIndex
+                                              ? AppColors.secondary
+                                              : Colors.white24,
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ],

@@ -410,5 +410,5 @@ End Users (Android devices)
 
 ---
 
-**Version**: 2.6.0 beta release  
+**Version**: 5.0.0 Stable Release  
 **Last Updated**: February 9, 2026
