@@ -158,31 +158,31 @@ Pornography addiction has become a widespread issue affecting millions globally,
 
 ## Development Roadmap
 
-### Phase 1: MVP (Completed) ✅
+### Phase 1: Core MVP (Completed) ✅
 - VPN blocking (Cloudflare Family DNS)
 - Streak tracking (server-side)
 - Daily check-ins
-- Islamic motivational content
+- Basic Islamic motivational content
 - Relapse flow with reflection
 - Security hardening (RLS, rate limiting, anti-tampering)
 
-### Phase 2: Community Features (Q1 2026)
-- Accountability partners
-- Group challenges
-- Anonymous forums
-- Success stories
+### Phase 2: Community & Spiritual Expansion (Ongoing) 🔄
+- **Accountability Partners**: Connect with a friend to monitor progress and receive alerts.
+- **Community Challenges**: Join collective streaks, Dhikr targets, and Quran milestones.
+- **Quran Reader**: Integrated Ayah-by-Ayah streaming, translations, and bookmarks.
+- **Spiritual Hub**: Track Salah, Dhikr, and Adhkar in a central location.
 
-### Phase 3: Advanced Features (Q2 2026)
-- AI trigger analysis
-- Personalized Islamic content
-- Therapist integration
-- Web dashboard for parents
+### Phase 3: Advanced Features & AI (Q2 2026)
+- **AI Trigger Analysis**: Predict high-risk periods based on check-in sentiment and timing.
+- **Dynamic Notification Engine**: Smart reminders for prayers and check-ins.
+- **Therapist Integration**: Securely share progress summaries with professional counselors.
+- **Enhanced Adhkar Content**: Audio for supplications and tajweed guides.
 
-### Phase 4: Ecosystem Expansion (Q3 2026)
-- iOS version
-- Desktop browser extension
-- API for Muslim counselors
-- White-label for Islamic organizations
+### Phase 4: Platform Expansion (Q3 2026)
+- **iOS & Web Versions**: Full ecosystem support.
+- **Desktop Extensions**: Browser-level blocking for computer usage.
+- **API for Partners**: Integration with Islamic community platforms.
+
 
 ---
 
@@ -312,5 +312,6 @@ Pornography addiction has become a widespread issue affecting millions globally,
 
 ---
 
-**Version**: 5.0.0 Stable Release  
+**Version**: 5.1.0 (Documentation Update)  
 **Last Updated**: February 9, 2026
+

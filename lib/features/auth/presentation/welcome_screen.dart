@@ -24,7 +24,7 @@ class WelcomeScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.primary.withOpacity(0.1),
+                        AppColors.primary.withValues(alpha: 0.1),
                         Colors.transparent,
                       ],
                     ),
@@ -116,7 +116,7 @@ class WelcomeScreen extends StatelessWidget {
                     onPressed: () => context.push('/login'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

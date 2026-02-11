@@ -64,7 +64,7 @@ class _CalendarWidgetState extends ConsumerState<CalendarWidget> {
                 defaultTextStyle: const TextStyle(color: Colors.white70),
                 weekendTextStyle: const TextStyle(color: Colors.white38),
                 todayDecoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 selectedDecoration: const BoxDecoration(

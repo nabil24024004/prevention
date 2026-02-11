@@ -54,7 +54,7 @@ class AboutScreen extends StatelessWidget {
                                 top: BorderSide(
                                   color: const Color(
                                     0xFFD4AF37,
-                                  ).withOpacity(0.2),
+                                  ).withValues(alpha: 0.2),
                                   width: 1,
                                 ),
                               ),
@@ -79,7 +79,7 @@ class AboutScreen extends StatelessWidget {
                                   BoxShadow(
                                     color: const Color(
                                       0xFF1B5E20,
-                                    ).withOpacity(0.4),
+                                    ).withValues(alpha: 0.4),
                                     blurRadius: 30,
                                     spreadRadius: 5,
                                   ),
@@ -114,12 +114,12 @@ class AboutScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: const Color(
                                   0xFFD4AF37,
-                                ).withOpacity(0.15),
+                                ).withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: const Color(
                                     0xFFD4AF37,
-                                  ).withOpacity(0.3),
+                                  ).withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Text(
@@ -196,10 +196,10 @@ class AboutScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1B5E20).withOpacity(0.1),
+                              color: const Color(0xFF1B5E20).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFF1B5E20).withOpacity(0.3),
+                                color: const Color(0xFF1B5E20).withValues(alpha: 0.3),
                               ),
                             ),
                             child: Column(
@@ -282,7 +282,7 @@ class AboutScreen extends StatelessWidget {
                                 border: Border.all(
                                   color: const Color(
                                     0xFFD4AF37,
-                                  ).withOpacity(0.2),
+                                  ).withValues(alpha: 0.2),
                                 ),
                               ),
                               child: Row(
@@ -292,7 +292,7 @@ class AboutScreen extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       color: const Color(
                                         0xFFD4AF37,
-                                      ).withOpacity(0.1),
+                                      ).withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(
@@ -404,7 +404,7 @@ class AboutScreen extends StatelessWidget {
                               gradient: LinearGradient(
                                 colors: [
                                   Colors.transparent,
-                                  const Color(0xFFD4AF37).withOpacity(0.5),
+                                  const Color(0xFFD4AF37).withValues(alpha: 0.5),
                                   Colors.transparent,
                                 ],
                               ),
@@ -466,9 +466,9 @@ class AboutScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: iconColor.withOpacity(0.3)),
+                border: Border.all(color: iconColor.withValues(alpha: 0.3)),
               ),
               child: Icon(icon, color: iconColor, size: 18),
             ),
@@ -495,7 +495,7 @@ class AboutScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF0D1B2A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.2)),
+        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.2)),
       ),
       child: Text(
         label,
@@ -548,7 +548,7 @@ class _IslamicPatternPainter extends CustomPainter {
 
   void _drawGraffitiSwirls(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF1B5E20).withOpacity(0.06)
+      ..color = const Color(0xFF1B5E20).withValues(alpha: 0.06)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
@@ -579,12 +579,12 @@ class _IslamicPatternPainter extends CustomPainter {
       );
     canvas.drawPath(
       path2,
-      paint..color = const Color(0xFFD4AF37).withOpacity(0.04),
+      paint..color = const Color(0xFFD4AF37).withValues(alpha: 0.04),
     );
 
     // Spiral accent
     final spiralPaint = Paint()
-      ..color = const Color(0xFF2E7D32).withOpacity(0.05)
+      ..color = const Color(0xFF2E7D32).withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
@@ -606,7 +606,7 @@ class _IslamicPatternPainter extends CustomPainter {
 
   void _drawIslamicGrid(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFD4AF37).withOpacity(0.025)
+      ..color = const Color(0xFFD4AF37).withValues(alpha: 0.025)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.6;
 
@@ -623,7 +623,7 @@ class _IslamicPatternPainter extends CustomPainter {
 
   void _drawStarAccents(Canvas canvas, Size size) {
     final starPaint = Paint()
-      ..color = const Color(0xFFD4AF37).withOpacity(0.08)
+      ..color = const Color(0xFFD4AF37).withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8;
 
@@ -656,14 +656,14 @@ class _IslamicPatternPainter extends CustomPainter {
       canvas,
       Offset(size.width * 0.5, size.height * 0.55),
       40,
-      starPaint..color = const Color(0xFF1B5E20).withOpacity(0.06),
+      starPaint..color = const Color(0xFF1B5E20).withValues(alpha: 0.06),
     );
   }
 
   void _drawVectorStrokes(Canvas canvas, Size size) {
     // Graffiti-style angular strokes
     final strokePaint = Paint()
-      ..color = const Color(0xFF1B5E20).withOpacity(0.04)
+      ..color = const Color(0xFF1B5E20).withValues(alpha: 0.04)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round
@@ -684,7 +684,7 @@ class _IslamicPatternPainter extends CustomPainter {
 
     // Geometric vector lines
     final linePaint = Paint()
-      ..color = const Color(0xFFD4AF37).withOpacity(0.03)
+      ..color = const Color(0xFFD4AF37).withValues(alpha: 0.03)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
@@ -702,7 +702,7 @@ class _IslamicPatternPainter extends CustomPainter {
 
     // Dotted accent line
     final dotPaint = Paint()
-      ..color = const Color(0xFFD4AF37).withOpacity(0.06)
+      ..color = const Color(0xFFD4AF37).withValues(alpha: 0.06)
       ..style = PaintingStyle.fill;
 
     for (double i = 0; i < 8; i++) {

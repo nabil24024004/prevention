@@ -17,6 +17,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _nameController = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _signUp() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
@@ -82,19 +90,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
             } catch (_) {
               // Fail silently, trigger might have handled it
             }
-            context.go('/dashboard');
+            if (mounted) context.go('/dashboard');
           } else {
             // Confirm email required
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Success! Please check your email to confirm your account.',
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Success! Please check your email to confirm your account.',
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 4),
                 ),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 4),
-              ),
-            );
-            context.go('/login'); // Return to login to wait for click
+              );
+              context.go('/login'); // Return to login to wait for click
+            }
           }
         }
       }
@@ -117,10 +127,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       }
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
+      }
     }
   }
 
@@ -172,7 +183,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -193,7 +204,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -215,7 +226,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),

@@ -72,7 +72,7 @@ class _MainScaffoldState extends State<MainScaffold> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.secondary.withOpacity(0.4),
+                  color: AppColors.secondary.withValues(alpha: 0.4),
                   blurRadius: 15,
                   offset: const Offset(0, 4),
                 ),
@@ -184,7 +184,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.primary.withOpacity(0.15)
+                  ? AppColors.primary.withValues(alpha: 0.15)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
             ),

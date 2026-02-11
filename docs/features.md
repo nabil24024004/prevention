@@ -112,7 +112,7 @@ Emergency intervention tool designed to break the "trance" of temptation through
 
 ### Key Features
 
-1.  **Mandatory 5-Minute Timer**:
+1.  **Mandatory 4-Minute Timer**:
     - Locks user in the screen for 300 seconds
     - Prevents impulsive navigation away from help
     - Disables "I AM CALM NOW" button until timer ends
@@ -447,5 +447,59 @@ All security events logged:
 
 ---
 
-**Version**: 5.0.0 Stable Release  
+---
+
+## 📖 10. Quran Reader
+
+### Description
+A full Quranic experience with multi-reciter audio, verse-by-verse translation, and cloud-synced bookmarking.
+
+### Key Features
+- **Surah & Juz Browsing**: Easy navigation by chapter or part.
+- **Audio Recitation**: High-quality streaming via `just_audio`.
+- **Bookmark System**: Save specific Ayahs to your profile for quick review.
+- **Progress Tracking**: Quran reading time automatically updates your spiritual profile and contributes to relevant community challenges.
+
+### Technical Implementation
+- **Data Source**: Fetches content from `api.alquran.cloud`.
+- **State Management**: Reactive UI using `ChangeNotifier` and `Riverpod`.
+- **Audio Focus**: Integrated with `audio_session` to handle system-level playback events and focus loss.
+
+---
+
+## 🏆 11. Community Challenges
+
+### Description
+Engagement-driven challenges where users compete collectively or individually to build positive habits and achieve spiritual milestones.
+
+### Challenge Types
+1. **Streak Challenges**: Maintain a clean streak for a specific duration.
+2. **Dhikr Challenges**: Reach collective targets for specific supplications.
+3. **Quran Challenges**: Read a set number of pages or verses within a timeframe.
+
+### Mechanics
+- **Real-time Leaderboards**: See how you rank among participants.
+- **Badge Rewards**: Earn permanent virtual medals for completing difficult challenges.
+- **Server-Side Validation**: All progress is validated via Supabase triggers to prevent artificial inflation.
+
+---
+
+## 🧘 12. Spiritual Hub & Tracking
+
+### Description
+A central tracking system for religious activities, fostering a holistic approach to recovery.
+
+### Tracked Activities
+- **Salah Tracker**: Keep record of five daily prayers.
+- **Dhikr Counter**: Interactive "tasbih" mode with haptic feedback.
+- **Adhkar Hub**: Morning, evening, and situational supplications.
+
+### Integration
+- **Cross-Feature Sync**: Activities in the Quran or Dhikr modules automatically update the Spiritual Hub and trigger challenge progress updates.
+- **Data Persistence**: All logs are stored securely in Supabase with RLS policies ensuring user privacy.
+
+---
+
+**Version**: 5.1.0 (Documentation Update)  
 **Last Updated**: February 9, 2026
+

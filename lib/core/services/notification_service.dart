@@ -1,6 +1,9 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as fln;
+// ... (I need to be careful with replace, better to use multi_replace if changing import and usage)
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 
@@ -9,44 +12,84 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications =
-      FlutterLocalNotificationsPlugin();
+  static const String _notificationsEnabledKey = 'daily_notifications_enabled';
+
+  // Expose the plugin for advanced usage if needed
+  final fln.FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      fln.FlutterLocalNotificationsPlugin();
+
+  bool _isInitialized = false;
 
   Future<void> init() async {
-    tz.initializeTimeZones();
+    if (_isInitialized) return;
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+    try {
+      tz.initializeTimeZones();
 
-    const settings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
+      const androidSettings = fln.AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
+      const iosSettings = fln.DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
 
-    await _notifications.initialize(settings);
-    debugPrint('NotificationService initialized');
+      const settings = fln.InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
 
-    // Request permissions specifically for Android 13+
-    await requestPermissions();
+      await flutterLocalNotificationsPlugin.initialize(
+        settings,
+        onDidReceiveNotificationResponse: (response) {
+          debugPrint('Notification clicked: ${response.payload}');
+        },
+      );
+
+      _isInitialized = true;
+      debugPrint('NotificationService initialized successfully');
+
+      // If enabled in prefs, ensure they are scheduled
+      if (await areNotificationsEnabled()) {
+        await scheduleDailyNotifications();
+      }
+    } catch (e) {
+      debugPrint('Error initializing NotificationService: $e');
+    }
   }
 
-  Future<void> requestPermissions() async {
-    final androidImplementation = _notifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    
-    final bool? granted = await androidImplementation?.requestNotificationsPermission();
-    debugPrint('Notification permission granted: $granted');
-    
-    // Also check for exact alarm permission which is required for scheduled notifications on Android 12+
-    await androidImplementation?.requestExactAlarmsPermission();
+  /// Requests notification permissions from the system.
+  /// Returns true if granted, false otherwise.
+  Future<bool> requestPermissions() async {
+    try {
+      final androidImplementation = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            fln.AndroidFlutterLocalNotificationsPlugin
+          >();
+
+      final bool? granted = await androidImplementation
+          ?.requestNotificationsPermission();
+
+      // Also check/request for exact alarm permission on Android 12+
+      await androidImplementation?.requestExactAlarmsPermission();
+
+      final iosImplementation = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            fln.IOSFlutterLocalNotificationsPlugin
+          >();
+
+      final bool? iosGranted = await iosImplementation?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      return granted ?? iosGranted ?? false;
+    } catch (e) {
+      debugPrint('Error requesting permissions: $e');
+      return false;
+    }
   }
 
   final List<String> _duasAndQuotes = [
@@ -75,23 +118,26 @@ class NotificationService {
   /// Shows an immediate notification with a random motivation.
   /// Intended to be called when the app is opened/resumed.
   Future<void> showMotivationalNotification() async {
+    if (!await areNotificationsEnabled()) return;
+
     try {
-      final randomQuote = _duasAndQuotes[Random().nextInt(_duasAndQuotes.length)];
-      
-      const androidDetails = AndroidNotificationDetails(
+      final randomQuote =
+          _duasAndQuotes[Random().nextInt(_duasAndQuotes.length)];
+
+      const androidDetails = fln.AndroidNotificationDetails(
         'immediate_motivation_channel',
         'Instant Motivation',
         channelDescription: 'Motivational quotes shown on app open',
-        importance: Importance.max,
-        priority: Priority.high,
-      );
-      
-      const details = NotificationDetails(
-        android: androidDetails,
-        iOS: DarwinNotificationDetails(),
+        importance: fln.Importance.max,
+        priority: fln.Priority.high,
       );
 
-      await _notifications.show(
+      const details = fln.NotificationDetails(
+        android: androidDetails,
+        iOS: fln.DarwinNotificationDetails(),
+      );
+
+      await flutterLocalNotificationsPlugin.show(
         999, // Fixed ID for instant notifications, replaces previous
         'Daily Reminder',
         randomQuote,
@@ -103,19 +149,54 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleDailyNotifications() async {
+  /// Shows an immediate test notification.
+  Future<void> showTestNotification() async {
     try {
-      // Cancel existing to avoid duplicates
-      await _notifications.cancelAll();
-      debugPrint('Cancelled all previous notifications');
+      const androidDetails = fln.AndroidNotificationDetails(
+        'test_channel',
+        'Test Notifications',
+        channelDescription: 'Channel for testing notifications',
+        importance: fln.Importance.max,
+        priority: fln.Priority.high,
+      );
 
-      // Schedule 3 notifications per day
+      const details = fln.NotificationDetails(
+        android: androidDetails,
+        iOS: fln.DarwinNotificationDetails(),
+      );
+
+      await flutterLocalNotificationsPlugin.show(
+        888,
+        'Test Notification',
+        'If you can see this, notifications are working! 🚀',
+        details,
+      );
+      debugPrint('Test notification sent');
+    } catch (e) {
+      debugPrint('Error showing test notification: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> scheduleDailyNotifications() async {
+    // Only schedule if actually enabled
+    if (!await areNotificationsEnabled()) {
+      debugPrint('Skipping schedule: Notifications disabled in settings');
+      return;
+    }
+
+    try {
+      // Cancel existings to start fresh
+      await flutterLocalNotificationsPlugin.cancelAll();
+
+      // Schedule 3 notifications per day: 8 AM, 4 PM, 9 PM
       await _scheduleAtTime(8, 0, 1);
       await _scheduleAtTime(16, 0, 2);
       await _scheduleAtTime(21, 0, 3);
-      debugPrint('Scheduled daily notifications');
+
+      debugPrint('Daily notifications scheduled successfully');
     } catch (e) {
-      debugPrint('Error scheduling notifications: $e');
+      debugPrint('Error scheduling daily notifications: $e');
     }
   }
 
@@ -135,29 +216,52 @@ class NotificationService {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
-      final randomQuote = _duasAndQuotes[Random().nextInt(_duasAndQuotes.length)];
+      final randomQuote =
+          _duasAndQuotes[Random().nextInt(_duasAndQuotes.length)];
 
-      await _notifications.zonedSchedule(
+      await flutterLocalNotificationsPlugin.zonedSchedule(
         id,
         'Daily Reminder',
         randomQuote,
         scheduledDate,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
+        const fln.NotificationDetails(
+          android: fln.AndroidNotificationDetails(
             'daily_motivation_channel',
             'Daily Motivation',
             channelDescription: 'Motivational quotes and duas',
-            importance: Importance.max,
-            priority: Priority.high,
+            importance: fln.Importance.max,
+            priority: fln.Priority.high,
           ),
-          iOS: DarwinNotificationDetails(),
+          iOS: fln.DarwinNotificationDetails(),
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
+        androidScheduleMode: fln.AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: fln.DateTimeComponents.time,
       );
       debugPrint('Scheduled notification $id for $scheduledDate');
     } catch (e) {
-      debugPrint('Error scheduling notification $id: $e');
+      debugPrint('Error scheduling specific notification $id: $e');
+    }
+  }
+
+  /// Check if daily notifications are enabled in app preferences
+  Future<bool> areNotificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_notificationsEnabledKey) ?? true;
+  }
+
+  /// Enable or disable daily notifications
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationsEnabledKey, enabled);
+
+    if (enabled) {
+      // When enabling, first request permissions if not granted
+      await requestPermissions();
+      await scheduleDailyNotifications();
+      debugPrint('Daily notifications enabled and scheduled');
+    } else {
+      await flutterLocalNotificationsPlugin.cancelAll();
+      debugPrint('All notifications cancelled (disabled)');
     }
   }
 }

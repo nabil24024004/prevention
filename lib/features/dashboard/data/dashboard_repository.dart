@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -64,9 +65,11 @@ class DashboardRepository {
           'current_streak_days': 0,
         })
         .eq('id', _userId);
-    
+
     // Debug: log that update was called
-    print('[DashboardRepository] Relapse logged. current_streak_days set to 0 for user $_userId');
+    debugPrint(
+      '[DashboardRepository] Relapse logged. current_streak_days set to 0 for user $_userId',
+    );
   }
 
   Future<void> logDailyCheckIn({required String mood, String? notes}) async {
@@ -144,7 +147,7 @@ class DashboardRepository {
   Future<List<String>> getWeeklyCheckIns() async {
     const cacheKey = 'cached_weekly_checkins';
     final prefs = await SharedPreferences.getInstance();
-    
+
     try {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
@@ -163,7 +166,9 @@ class DashboardRepository {
           .lte('date', endStr)
           .eq('completed_checkin', true);
 
-      final result = (response as List).map((e) => e['date'] as String).toList();
+      final result = (response as List)
+          .map((e) => e['date'] as String)
+          .toList();
       await prefs.setStringList(cacheKey, result);
       return result;
     } catch (e) {
@@ -174,7 +179,7 @@ class DashboardRepository {
   Future<List<String>> getWeeklyRelapses() async {
     const cacheKey = 'cached_weekly_relapses';
     final prefs = await SharedPreferences.getInstance();
-    
+
     try {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
@@ -206,7 +211,7 @@ class DashboardRepository {
   Future<List<Map<String, dynamic>>> getRelapseHistory({int limit = 10}) async {
     const cacheKey = 'cached_relapse_history';
     final prefs = await SharedPreferences.getInstance();
-    
+
     try {
       final response = await _client
           .from('relapses')

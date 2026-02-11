@@ -17,34 +17,43 @@ class StatisticsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            24,
-            24,
-            24,
-            140,
-          ), // Restored side padding, kept bottom clearance
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Insights',
-                style: GoogleFonts.outfit(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+      body: CustomScrollView(
+        slivers: [
+          // Pinned Header
+          SliverAppBar(
+            backgroundColor: Colors.black,
+            pinned: true,
+            automaticallyImplyLeading: false,
+            expandedHeight: 100,
+            collapsedHeight: 80,
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.only(left: 24, bottom: 16),
+              title: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Insights',
+                    style: GoogleFonts.outfit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Track your recovery journey',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Track your recovery journey',
-                style: TextStyle(color: Colors.grey[400], fontSize: 16),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Chart Card
+            ),
+          ),
+          // Content
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 140),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Chart Card
               Container(
                 height: 300,
                 padding: const EdgeInsets.all(20),
@@ -75,11 +84,11 @@ class StatisticsScreen extends ConsumerWidget {
                           data: (relapses) => _buildChart(checkIns, relapses),
                           loading: () =>
                               const Center(child: CircularProgressIndicator()),
-                          error: (_, __) => const SizedBox(),
+                          error: (_, _) => const SizedBox(),
                         ),
                         loading: () =>
                             const Center(child: CircularProgressIndicator()),
-                        error: (_, __) => const SizedBox(),
+                        error: (_, _) => const SizedBox(),
                       ),
                     ),
                   ],
@@ -210,22 +219,26 @@ class StatisticsScreen extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(
+                error: (_, _) => Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.cloud_off, size: 36, color: Colors.grey[600]),
                       const SizedBox(height: 12),
-                      Text('Offline', style: TextStyle(color: Colors.grey[400], fontSize: 16)),
+                      Text(
+                        'Offline',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                      ),
                     ],
                   ),
                 ),
               ),
 
               const SizedBox(height: 100), // Bottom Pad
-            ],
+              ]),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -313,7 +326,7 @@ class StatisticsScreen extends ConsumerWidget {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
             ),
           ),
         ],

@@ -16,6 +16,19 @@ import '../../features/statistics/presentation/statistics_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/blocking/data/blocker_repository.dart';
 import '../../features/about/presentation/about_screen.dart';
+import '../../features/accountability/presentation/accountability_screen.dart';
+import '../../features/accountability/presentation/partner_settings_screen.dart';
+import '../../features/spiritual/presentation/spiritual_hub_screen.dart';
+import '../../features/spiritual/presentation/dhikr_counter_screen.dart';
+import '../../features/spiritual/presentation/salah_tracker_screen.dart';
+import '../../features/spiritual/presentation/adhkar_reader_screen.dart';
+import '../../features/challenges/presentation/challenges_screen.dart';
+import '../../features/challenges/presentation/challenge_detail_screen.dart';
+import '../../features/challenges/presentation/badges_screen.dart';
+import '../../features/challenges/presentation/create_challenge_screen.dart';
+import '../../features/quran/presentation/quran_screen.dart';
+import '../../features/quran/presentation/surah_reader_screen.dart';
+import '../../features/quran/presentation/juz_reader_screen.dart';
 
 GoRouter createRouter(
   bool isFirstLaunch, {
@@ -123,6 +136,75 @@ GoRouter createRouter(
         builder: (context, state) => const PanicModeScreen(),
       ),
       GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
+
+      // Accountability Partner Routes
+      GoRoute(
+        path: '/accountability',
+        builder: (context, state) => const AccountabilityScreen(),
+      ),
+      GoRoute(
+        path: '/accountability/settings/:id',
+        builder: (context, state) =>
+            PartnerSettingsScreen(partnershipId: state.pathParameters['id']!),
+      ),
+
+      // Spiritual Exercises Routes
+      GoRoute(
+        path: '/spiritual',
+        builder: (context, state) => const SpiritualHubScreen(),
+      ),
+      GoRoute(
+        path: '/spiritual/dhikr',
+        builder: (context, state) => const DhikrCounterScreen(),
+      ),
+      GoRoute(
+        path: '/spiritual/salah',
+        builder: (context, state) => const SalahTrackerScreen(),
+      ),
+      GoRoute(
+        path: '/spiritual/adhkar',
+        builder: (context, state) {
+          final category = state.uri.queryParameters['category'];
+          return AdhkarReaderScreen(initialCategory: category);
+        },
+      ),
+      GoRoute(
+        path: '/spiritual/quran',
+        builder: (context, state) => const QuranScreen(),
+      ),
+      GoRoute(
+        path: '/spiritual/quran/surah/:id',
+        builder: (context, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return SurahReaderScreen(surahNumber: id);
+        },
+      ),
+      GoRoute(
+        path: '/spiritual/quran/juz/:id',
+        builder: (context, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return JuzReaderScreen(juzNumber: id);
+        },
+      ),
+
+      // Community Challenges Routes
+      GoRoute(
+        path: '/challenges',
+        builder: (context, state) => const ChallengesScreen(),
+      ),
+      GoRoute(
+        path: '/challenges/badges',
+        builder: (context, state) => const BadgesScreen(),
+      ),
+      GoRoute(
+        path: '/challenges/create',
+        builder: (context, state) => const CreateChallengeScreen(),
+      ),
+      GoRoute(
+        path: '/challenges/:id',
+        builder: (context, state) =>
+            ChallengeDetailScreen(challengeId: state.pathParameters['id']!),
+      ),
     ],
   );
 }

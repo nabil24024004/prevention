@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -97,7 +98,7 @@ class BlockerRepository {
       return true;
     } on PlatformException catch (e) {
       // User may have denied or it's not supported
-      print('Screen pin failed: ${e.message}');
+      debugPrint('Screen pin failed: ${e.message}');
       return false;
     }
   }
@@ -108,7 +109,7 @@ class BlockerRepository {
       await platform.invokeMethod('stopScreenPin');
       return true;
     } on PlatformException catch (e) {
-      print('Stop screen pin failed: ${e.message}');
+      debugPrint('Stop screen pin failed: ${e.message}');
       return false;
     }
   }

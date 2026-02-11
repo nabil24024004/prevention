@@ -110,15 +110,19 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
 
     if (persistedSeconds > 0) {
       // Resume existing session
-      setState(() {
-        _secondsRemaining = persistedSeconds;
-      });
+      if (mounted) {
+        setState(() {
+          _secondsRemaining = persistedSeconds;
+        });
+      }
     } else {
       // Start new panic session - save to SharedPreferences
       await blockerRepo.setPanicModeActive(_panicDurationSeconds);
-      setState(() {
-        _secondsRemaining = _panicDurationSeconds;
-      });
+      if (mounted) {
+        setState(() {
+          _secondsRemaining = _panicDurationSeconds;
+        });
+      }
     }
 
     _startTimer();
@@ -194,7 +198,7 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
                         colors: [
-                          AppColors.error.withOpacity(0.2),
+                          AppColors.error.withValues(alpha: 0.2),
                           Colors.black,
                         ],
                         radius: 1.5,
@@ -225,10 +229,10 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                         vertical: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: AppColors.error.withOpacity(0.5),
+                          color: AppColors.error.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Text(
@@ -288,7 +292,7 @@ class _PanicModeScreenState extends ConsumerState<PanicModeScreen> {
                         ],
                       ).animate().fadeIn(delay: 300.ms),
                       loading: () => const CircularProgressIndicator(),
-                      error: (_, __) => const SizedBox(),
+                      error: (_, _) => const SizedBox(),
                     ),
 
                     const SizedBox(height: 32),

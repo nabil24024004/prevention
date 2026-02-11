@@ -170,6 +170,109 @@ CREATE TABLE content_resources (
 - All authenticated users can read
 - Only admins can write
 
+### quran_bookmarks
+
+**Schema**:
+```sql
+CREATE TABLE quran_bookmarks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id),
+  surah_number INT NOT NULL,
+  ayah_number INT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, surah_number, ayah_number)
+);
+```
+
+**RLS Policy**:
+- Users can read/insert/delete only their own bookmarks.
+
+### spiritual_logs
+
+**Schema**:
+```sql
+CREATE TABLE spiritual_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id),
+  activity_type TEXT NOT NULL, -- 'prayer', 'dhikr', 'quran_reading'
+  sub_type TEXT, -- e.g., 'fajr', 'morning_adhkar'
+  value INT DEFAULT 0, -- e.g., dhikr count or reading duration
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**RLS Policy**:
+- Users can read/insert/update only their own spiritual logs.
+
+### adhkar_content
+
+**Schema**:
+```sql
+CREATE TABLE adhkar_content (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category TEXT NOT NULL,
+  title TEXT NOT NULL,
+  arabic TEXT NOT NULL,
+  translation TEXT,
+  transliteration TEXT,
+  reference TEXT,
+  benefit TEXT,
+  target_count INT DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**RLS Policy**:
+- Read access for all authenticated users.
+
+### challenges
+
+**Schema**:
+```sql
+CREATE TABLE challenges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  type TEXT NOT NULL, -- 'streak', 'dhikr', 'quran'
+  target_value INT NOT NULL,
+  start_date TIMESTAMPTZ,
+  end_date TIMESTAMPTZ,
+  reward_badge_id UUID REFERENCES user_badges(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### challenge_participants
+
+**Schema**:
+```sql
+CREATE TABLE challenge_participants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  challenge_id UUID REFERENCES challenges(id),
+  user_id UUID REFERENCES auth.users(id),
+  current_progress INT DEFAULT 0,
+  is_completed BOOLEAN DEFAULT FALSE,
+  joined_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(challenge_id, user_id)
+);
+```
+
+### user_badges
+
+**Schema**:
+```sql
+CREATE TABLE user_badges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  icon_url TEXT,
+  category TEXT, -- 'streak', 'spiritual', 'challenge'
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+
 ---
 
 ## RPC Functions
@@ -485,5 +588,25 @@ Future<void> logRelapse(String trigger, String reflection) async {
 
 ---
 
-**Version**: 5.0.0 Stable Release  
+---
+
+## External APIs
+
+### AlQuran Cloud (`api.alquran.cloud`)
+
+**Purpose**: Primary source for Quranic text and audio metadata.
+
+**Key Endpoints**:
+- `GET /v1/surah`: Fetch list of all Surahs.
+- `GET /v1/surah/{number}/editions/quran-uthmani,en.sahih`: Fetch specific Surah with Arabic text and English translation.
+- `GET /v1/surah/{number}/ar.alafasy`: Fetch audio metadata (URLs) for a Surah.
+
+**Security**:
+- No API key required for public endpoints.
+- App enforces HTTPS for all received audio URLs.
+
+---
+
+**Version**: 5.1.0 (Documentation Update)  
 **Last Updated**: February 9, 2026
+

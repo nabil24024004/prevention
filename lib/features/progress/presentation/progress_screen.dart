@@ -176,13 +176,13 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
           Container(
             width: 1,
             height: 40,
-            color: AppColors.textSecondary.withOpacity(0.3),
+            color: AppColors.textSecondary.withValues(alpha: 0.3),
           ),
           _buildStatItem('$relapseDays', 'Relapses', AppColors.error),
           Container(
             width: 1,
             height: 40,
-            color: AppColors.textSecondary.withOpacity(0.3),
+            color: AppColors.textSecondary.withValues(alpha: 0.3),
           ),
           _buildStatItem(
             relapseDays > 0

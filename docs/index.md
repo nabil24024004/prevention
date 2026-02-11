@@ -17,6 +17,10 @@ Welcome to the **Prevention** app documentation. This folder contains comprehens
   - Islamic motivation content
   - Relapse accountability flow
   - Offline sync capabilities
+  - **Quran Reader** (Audio, Translation, Bookmarks)
+  - **Community Challenges** (Streaks, Dhikr, Quran)
+  - **Spiritual Hub** (Salah, Dhikr, Adhkar)
+
 
 ### Technical Documentation
 - [architecture.md](architecture.md) - System design and tech stack
@@ -139,4 +143,5 @@ To improve documentation:
 ---
 
 **Last Updated**: February 9, 2026  
-**Version**: 5.0.0 Stable Release
+**Version**: 5.1.0 (Documentation Update)
+

@@ -61,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   center: Alignment.topRight,
                   radius: 1.5,
                   colors: [
-                    _pages[_currentPage]['color'].withOpacity(0.15),
+                    _pages[_currentPage]['color'].withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                 ),
@@ -88,7 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             Container(
                               padding: const EdgeInsets.all(32),
                               decoration: BoxDecoration(
-                                color: (page['color'] as Color).withOpacity(
+                                color: (page['color'] as Color).withValues(alpha: 
                                   0.1,
                                 ),
                                 shape: BoxShape.circle,

@@ -32,9 +32,13 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   Future<void> _checkStatus() async {
     try {
       // Check for internet by trying to fetch data
-      final checkedIn = await ref.read(dashboardRepositoryProvider).hasCheckedInToday();
-      final relapsed = await ref.read(dashboardRepositoryProvider).hasRelapsedToday();
-      
+      final checkedIn = await ref
+          .read(dashboardRepositoryProvider)
+          .hasCheckedInToday();
+      final relapsed = await ref
+          .read(dashboardRepositoryProvider)
+          .hasRelapsedToday();
+
       if (mounted) {
         setState(() {
           _alreadyCheckedIn = checkedIn;
@@ -88,7 +92,10 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                   child: Text(
                     'Retry Connection',
@@ -108,20 +115,26 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
         children: [
           // 1. Sophisticated Ambient Background
           _buildAmbientBackground(),
-          
+
           // 2. Main Content
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32.0,
+                vertical: 24,
+              ),
               child: Column(
                 children: [
                   const SizedBox(height: 40),
-                  
+
                   // Label
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -135,23 +148,26 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                       ),
                     ),
                   ).animate().fadeIn().slideY(begin: -0.5),
-                  
+
                   const Spacer(),
-                  
+
                   // Main Question
                   Text(
-                    'Did you stay\nclean today?',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.outfit(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1,
-                    ),
-                  ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.9, 0.9)),
-                  
+                        'Did you stay\nclean today?',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 600.ms)
+                      .scale(begin: const Offset(0.9, 0.9)),
+
                   const SizedBox(height: 16),
-                  
+
                   Text(
                     'Your honesty builds your strength.',
                     style: GoogleFonts.outfit(
@@ -176,7 +192,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
               ),
             ),
           ),
-          
+
           // Loading Overlay
           if (_isCheckingIn)
             Positioned.fill(
@@ -209,13 +225,19 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
         Positioned(
           top: -150,
           left: -50,
-          child: _AmbientBlob(color: AppColors.primary.withOpacity(0.12), radius: 250),
+          child: _AmbientBlob(
+            color: AppColors.primary.withValues(alpha: 0.12),
+            radius: 250,
+          ),
         ),
         // Center Bottom Blob
         Positioned(
           bottom: -200,
           right: -50,
-          child: _AmbientBlob(color: AppColors.secondary.withOpacity(0.1), radius: 350),
+          child: _AmbientBlob(
+            color: AppColors.secondary.withValues(alpha: 0.1),
+            radius: 350,
+          ),
         ),
         // Dynamic Noise Texture (Optional - if you had a noise asset, but we'll use a subtle opacity overlay)
         BackdropFilter(
@@ -229,97 +251,106 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   Widget _buildYesButton() {
     // Determine if button should be disabled
     final isDisabled = _alreadyCheckedIn || _hasRelapsedToday;
-    
+
     return Opacity(
-      opacity: isDisabled ? 0.4 : 1.0,
-      child: Container(
-        width: double.infinity,
-        height: 84,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          gradient: LinearGradient(
-            colors: isDisabled 
-              ? [Colors.grey.shade700, Colors.grey.shade800]
-              : [AppColors.secondary, const Color(0xFF1B5E20)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: isDisabled ? [] : [
-            BoxShadow(
-              color: AppColors.secondary.withOpacity(0.3),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-              spreadRadius: 2,
+          opacity: isDisabled ? 0.4 : 1.0,
+          child: Container(
+            width: double.infinity,
+            height: 84,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                colors: isDisabled
+                    ? [Colors.grey.shade700, Colors.grey.shade800]
+                    : [AppColors.secondary, const Color(0xFF1B5E20)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: isDisabled
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: AppColors.secondary.withValues(alpha: 0.3),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
+                        spreadRadius: 2,
+                      ),
+                    ],
             ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(28),
-            onTap: isDisabled ? null : _handleCheckIn,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isDisabled ? Icons.lock_outline : Icons.check_rounded, 
-                    color: Colors.white, 
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(28),
+                onTap: isDisabled ? null : _handleCheckIn,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      isDisabled 
-                        ? (_hasRelapsedToday ? 'Relapsed Today' : 'Already Checked In')
-                        : 'Yes, Alhamdulillah',
-                      style: GoogleFonts.outfit(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isDisabled ? Icons.lock_outline : Icons.check_rounded,
                         color: Colors.white,
-                        letterSpacing: 0.5,
+                        size: 28,
                       ),
                     ),
-                    if (isDisabled)
-                      Text(
-                        'Come back tomorrow',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14, // Bumped from 12
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white70,
+                    const SizedBox(width: 16),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isDisabled
+                              ? (_hasRelapsedToday
+                                    ? 'Relapsed Today'
+                                    : 'Already Checked In')
+                              : 'Yes, Alhamdulillah',
+                          style: GoogleFonts.outfit(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
+                        if (isDisabled)
+                          Text(
+                            'Come back tomorrow',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14, // Bumped from 12
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white70,
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    ).animate(onPlay: isDisabled ? null : (controller) => controller.repeat(reverse: true))
-     .shimmer(duration: 3.seconds, delay: 2.seconds, color: Colors.white10);
+        )
+        .animate(
+          onPlay: isDisabled
+              ? null
+              : (controller) => controller.repeat(reverse: true),
+        )
+        .shimmer(duration: 3.seconds, delay: 2.seconds, color: Colors.white10);
   }
 
   Widget _buildNoButton() {
     // Disable if already checked in OR already relapsed today
     final isDisabled = _alreadyCheckedIn || _hasRelapsedToday;
-    
+
     String buttonText = 'No, I failed again..;(';
     if (_alreadyCheckedIn) {
       buttonText = 'Already checked in';
     } else if (_hasRelapsedToday) {
       buttonText = 'Already relapsed';
     }
-    
+
     return Opacity(
       opacity: isDisabled ? 0.4 : 1.0,
       child: TextButton(
@@ -330,7 +361,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: BorderSide(
-              color: isDisabled ? Colors.grey.withOpacity(0.2) : Colors.white.withOpacity(0.05), 
+              color: isDisabled
+                  ? Colors.grey.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -339,7 +372,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isDisabled ? Icons.lock_outline : Icons.close_rounded, 
+              isDisabled ? Icons.lock_outline : Icons.close_rounded,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -360,12 +393,16 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     setState(() => _isCheckingIn = true);
     try {
       // Check if user has relapsed today
-      final hasRelapsed = await ref.read(dashboardRepositoryProvider).hasRelapsedToday();
+      final hasRelapsed = await ref
+          .read(dashboardRepositoryProvider)
+          .hasRelapsedToday();
       if (hasRelapsed) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('You cannot check in after a relapse. Stay strong and try again tomorrow!'),
+              content: const Text(
+                'You cannot check in after a relapse. Stay strong and try again tomorrow!',
+              ),
               backgroundColor: AppColors.error,
               duration: const Duration(seconds: 4),
               behavior: SnackBarBehavior.floating,
@@ -381,7 +418,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       }
 
       // Check if already checked in today
-      final alreadyCheckedIn = await ref.read(dashboardRepositoryProvider).hasCheckedInToday();
+      final alreadyCheckedIn = await ref
+          .read(dashboardRepositoryProvider)
+          .hasCheckedInToday();
       if (alreadyCheckedIn) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -401,21 +440,29 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
         return;
       }
 
-      await ref.read(dashboardRepositoryProvider).logDailyCheckIn(mood: 'strong');
-      
+      await ref
+          .read(dashboardRepositoryProvider)
+          .logDailyCheckIn(mood: 'strong');
+
+      // Force refresh profile to get updated streak data immediately
+      await ref.read(userRepositoryProvider).refreshProfile();
+
       // Sync all progress related data
       ref.invalidate(userProfileStreamProvider);
       ref.invalidate(weeklyCheckInsProvider);
       ref.invalidate(weeklyRelapsesProvider);
       ref.invalidate(progressDataProvider);
-      
+
       if (mounted) {
         _showSuccessDialog();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -430,7 +477,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       builder: (ctx) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: const Color(0xFF1E1E1E).withOpacity(0.9),
+          backgroundColor: const Color(0xFF1E1E1E).withValues(alpha: 0.9),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32),
             side: const BorderSide(color: Colors.white10),
@@ -444,20 +491,24 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.secondary.withOpacity(0.1),
+                  color: AppColors.secondary.withValues(alpha: 0.1),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.secondary.withOpacity(0.3),
+                      color: AppColors.secondary.withValues(alpha: 0.3),
                       blurRadius: 40,
                       spreadRadius: 5,
                     ),
                   ],
                 ),
-                child: const Icon(Icons.done_all_rounded, color: AppColors.secondary, size: 64),
+                child: const Icon(
+                  Icons.done_all_rounded,
+                  color: AppColors.secondary,
+                  size: 64,
+                ),
               ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
-              
+
               const SizedBox(height: 32),
-              
+
               Text(
                 'MashaAllah!',
                 style: GoogleFonts.outfit(
@@ -466,9 +517,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   color: Colors.white,
                 ),
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               const Text(
                 'Your discipline is an inspiration.\nKeep moving forward.',
                 textAlign: TextAlign.center,
@@ -478,9 +529,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -491,13 +542,18 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     elevation: 0,
                   ),
                   child: Text(
                     'Continue Journey',
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),
@@ -521,10 +577,7 @@ class _AmbientBlob extends StatelessWidget {
     return Container(
       width: radius * 2,
       height: radius * 2,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 }

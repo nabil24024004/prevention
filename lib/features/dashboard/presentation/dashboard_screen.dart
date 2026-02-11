@@ -13,6 +13,8 @@ import '../../blocking/data/blocker_repository.dart';
 import 'widgets/weekly_streak_widget.dart';
 import 'widgets/streak_timer_widget.dart';
 import '../../progress/presentation/progress_screen.dart';
+import '../../spiritual/presentation/widgets/spiritual_widget.dart';
+import '../../challenges/presentation/widgets/challenges_widget.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -193,11 +195,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     horizontal: 16,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.9),
+                    color: Colors.red.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -264,10 +266,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             height: 300,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   blurRadius: 100,
                   spreadRadius: 50,
                 ),
@@ -277,347 +279,397 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
 
         SafeArea(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(userProfileStreamProvider);
-              ref.invalidate(weeklyCheckInsProvider);
-              ref.invalidate(weeklyRelapsesProvider);
-              await Future.wait([
-                ref.read(weeklyCheckInsProvider.future),
-                ref.read(weeklyRelapsesProvider.future),
-                ref.read(progressDataProvider.future),
-              ]);
-              await _checkBlockerStatus();
-            },
-            color: AppColors.primary,
-            backgroundColor: AppColors.surface,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 16,
-              ),
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with Protection Status
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Assalamualaikum,',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            profile.username ?? 'Brother',
-                            style: GoogleFonts.outfit(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          // Protection Status Badge
-                          GestureDetector(
-                            onTap: _toggleBlocker,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _isBlockerActive
-                                    ? const Color(0xFF1B5E20) // Dark Green
-                                    : const Color(0xFF1E1E1E),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: _isBlockerActive
-                                      ? Colors.greenAccent.withOpacity(0.5)
-                                      : Colors.white12,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _isBlockerActive
-                                        ? Icons.security
-                                        : Icons.gpp_bad_outlined,
-                                    color: _isBlockerActive
-                                        ? Colors.white
-                                        : Colors.redAccent,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    _isBlockerActive ? 'Protected' : 'Unsafe',
-                                    style: TextStyle(
-                                      color: _isBlockerActive
-                                          ? Colors.white
-                                          : Colors.grey,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.settings_outlined,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => context.push('/settings'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Weekly Streak Tracker (Compact)
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final checkInsAsync = ref.watch(weeklyCheckInsProvider);
-                      final relapsesAsync = ref.watch(weeklyRelapsesProvider);
-                      return checkInsAsync.when(
-                        data: (dates) => relapsesAsync.when(
-                          data: (relapses) => WeeklyStreakWidget(
-                            completedDates: dates,
-                            relapseDates: relapses,
-                          ),
-                          loading: () =>
-                              WeeklyStreakWidget(completedDates: dates),
-                          error: (_, __) =>
-                              WeeklyStreakWidget(completedDates: dates),
-                        ),
-                        loading: () => const SizedBox(height: 60),
-                        error: (err, _) => const SizedBox.shrink(),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Hero Streak Section (Compacted)
-                  Center(
-                    child: GestureDetector(
-                      onTap: () => context.push('/progress'),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Outer Glow
-                          Container(
-                                width: 180, // Reduced from 220
-                                height: 180,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary.withOpacity(
-                                        0.15,
-                                      ),
-                                      blurRadius: 40,
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                              )
-                              .animate(
-                                onPlay: (controller) =>
-                                    controller.repeat(reverse: true),
-                              )
-                              .scale(
-                                begin: const Offset(1, 1),
-                                end: const Offset(1.05, 1.05),
-                                duration: 2.seconds,
-                              ),
-
-                          // Ring
-                          Container(
-                            width: 160, // Reduced from 200
-                            height: 160,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.primary.withOpacity(0.3),
-                                width: 2,
-                              ),
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary.withOpacity(0.1),
-                                  Colors.transparent,
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                            ),
-                          ),
-
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${profile.currentStreakDays}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 60, // Reduced from 72
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  height: 1.0,
-                                ),
-                              ),
-                              const Text(
-                                'DAYS FREE',
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  letterSpacing: 3,
-                                  fontSize: 10, // Reduced from 12
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              // Live Timer
-                              StreakTimerWidget(
-                                startDate: profile.startDate,
-                                isPaused: profile.currentStreakDays == 0,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Action Grid: Panic Button + Daily Motivation side-by-side?
-                  // No, Panic Button usually needs full width for urgency.
-                  // But we can compact the layout.
-
-                  // Panic Button
-                  _buildPanicButton(context),
-
-                  const SizedBox(height: 20),
-
-                  // Motivation Card (Swipeable)
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2A2A2A), Color(0xFF1F1F1F)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.05)),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+          child: Column(
+            children: [
+              // ── Fixed Header ──
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.format_quote_rounded,
-                                color: AppColors.primary,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Swipe for wisdom",
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
+                        Text(
+                          'Assalamualaikum,',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(
-                          height: 85,
-                          child: PageView.builder(
-                            controller: _quotePageController,
-                            itemCount: _dashboardQuotes.length,
-                            onPageChanged: (index) {
-                              setState(() => _quotePageIndex = index);
-                            },
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    _dashboardQuotes[index],
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.outfit(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        // Page indicators
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12, top: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              _dashboardQuotes.length > 10
-                                  ? 10
-                                  : _dashboardQuotes.length,
-                              (index) {
-                                final realIndex = _quotePageIndex < 5
-                                    ? index
-                                    : (_quotePageIndex >
-                                              _dashboardQuotes.length - 6
-                                          ? _dashboardQuotes.length - 10 + index
-                                          : _quotePageIndex - 5 + index);
-                                return AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 3,
-                                  ),
-                                  width: _quotePageIndex == realIndex ? 14 : 5,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(3),
-                                    color: _quotePageIndex == realIndex
-                                        ? AppColors.primary
-                                        : Colors.white24,
-                                  ),
-                                );
-                              },
-                            ),
+                        Text(
+                          profile.username ?? 'Brother',
+                          style: GoogleFonts.outfit(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ],
                     ),
-                  ).animate().slideY(begin: 0.1, end: 0, duration: 500.ms),
-
-                  const SizedBox(height: 20), // Bottom padding for NavBar + FAB
-                ],
+                    Row(
+                      children: [
+                        // Protection Status Badge
+                        GestureDetector(
+                          onTap: _toggleBlocker,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _isBlockerActive
+                                  ? const Color(0xFF1B5E20) // Dark Green
+                                  : const Color(0xFF1E1E1E),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: _isBlockerActive
+                                    ? Colors.greenAccent.withValues(alpha: 0.5)
+                                    : Colors.white12,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _isBlockerActive
+                                      ? Icons.security
+                                      : Icons.gpp_bad_outlined,
+                                  color: _isBlockerActive
+                                      ? Colors.white
+                                      : Colors.redAccent,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _isBlockerActive ? 'Protected' : 'Unsafe',
+                                  style: TextStyle(
+                                    color: _isBlockerActive
+                                        ? Colors.white
+                                        : Colors.grey,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.settings_outlined,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => context.push('/settings'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
+
+              // ── Scrollable Content ──
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(userProfileStreamProvider);
+                    ref.invalidate(weeklyCheckInsProvider);
+                    ref.invalidate(weeklyRelapsesProvider);
+                    await Future.wait([
+                      ref.read(weeklyCheckInsProvider.future),
+                      ref.read(weeklyRelapsesProvider.future),
+                      ref.read(progressDataProvider.future),
+                    ]);
+                    await _checkBlockerStatus();
+                  },
+                  color: AppColors.primary,
+                  backgroundColor: AppColors.surface,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Weekly Streak Tracker (Compact)
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final checkInsAsync = ref.watch(
+                              weeklyCheckInsProvider,
+                            );
+                            final relapsesAsync = ref.watch(
+                              weeklyRelapsesProvider,
+                            );
+                            return checkInsAsync.when(
+                              data: (dates) => relapsesAsync.when(
+                                data: (relapses) => WeeklyStreakWidget(
+                                  completedDates: dates,
+                                  relapseDates: relapses,
+                                ),
+                                loading: () =>
+                                    WeeklyStreakWidget(completedDates: dates),
+                                error: (_, _) =>
+                                    WeeklyStreakWidget(completedDates: dates),
+                              ),
+                              loading: () => const SizedBox(height: 60),
+                              error: (err, _) => const SizedBox.shrink(),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Hero Streak Section (Compacted)
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => context.push('/progress'),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Outer Glow
+                                Container(
+                                      width: 180, // Reduced from 220
+                                      height: 180,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.primary.withValues(
+                                              alpha: 0.15,
+                                            ),
+                                            blurRadius: 40,
+                                            spreadRadius: 0,
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                    .animate(
+                                      onPlay: (controller) =>
+                                          controller.repeat(reverse: true),
+                                    )
+                                    .scale(
+                                      begin: const Offset(1, 1),
+                                      end: const Offset(1.05, 1.05),
+                                      duration: 2.seconds,
+                                    ),
+
+                                // Ring
+                                Container(
+                                  width: 160, // Reduced from 200
+                                  height: 160,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      width: 2,
+                                    ),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.primary.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        Colors.transparent,
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${profile.currentStreakDays}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 60, // Reduced from 72
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        height: 1.0,
+                                      ),
+                                    ),
+                                    const Text(
+                                      'DAYS FREE',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        letterSpacing: 3,
+                                        fontSize: 10, // Reduced from 12
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    // Live Timer
+                                    StreakTimerWidget(
+                                      startDate: profile.startDate,
+                                      isPaused: profile.currentStreakDays == 0,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Action Grid: Panic Button + Daily Motivation side-by-side?
+                        // No, Panic Button usually needs full width for urgency.
+                        // But we can compact the layout.
+
+                        // Panic Button
+                        _buildPanicButton(context),
+
+                        const SizedBox(height: 20),
+
+                        // Motivation Card (Swipeable)
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF2A2A2A), Color(0xFF1F1F1F)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.05),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  14,
+                                  20,
+                                  6,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.format_quote_rounded,
+                                      color: AppColors.primary,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Swipe for wisdom",
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 85,
+                                child: PageView.builder(
+                                  controller: _quotePageController,
+                                  itemCount: _dashboardQuotes.length,
+                                  onPageChanged: (index) {
+                                    setState(() => _quotePageIndex = index);
+                                  },
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          _dashboardQuotes[index],
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.outfit(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              // Page indicators
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: 12,
+                                  top: 4,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    _dashboardQuotes.length > 10
+                                        ? 10
+                                        : _dashboardQuotes.length,
+                                    (index) {
+                                      final realIndex = _quotePageIndex < 5
+                                          ? index
+                                          : (_quotePageIndex >
+                                                    _dashboardQuotes.length - 6
+                                                ? _dashboardQuotes.length -
+                                                      10 +
+                                                      index
+                                                : _quotePageIndex - 5 + index);
+                                      return AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 3,
+                                        ),
+                                        width: _quotePageIndex == realIndex
+                                            ? 14
+                                            : 5,
+                                        height: 5,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            3,
+                                          ),
+                                          color: _quotePageIndex == realIndex
+                                              ? AppColors.primary
+                                              : Colors.white24,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().slideY(
+                          begin: 0.1,
+                          end: 0,
+                          duration: 500.ms,
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Spiritual Widget - Full Width
+                        const SpiritualWidget(),
+
+                        const SizedBox(height: 16),
+
+                        // Challenges Widget - Full Width
+                        const ChallengesWidget(),
+
+                        const SizedBox(
+                          height: 20,
+                        ), // Bottom padding for NavBar + FAB
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -633,7 +685,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.error.withOpacity(0.4),
+            color: AppColors.error.withValues(alpha: 0.4),
             blurRadius: 15,
             offset: const Offset(0, 4),
           ),
