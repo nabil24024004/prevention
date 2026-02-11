@@ -16,6 +16,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -27,9 +28,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Future<void> _signUp() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter your name')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your nickname')),
+      );
+      return;
+    }
+    if (_nameController.text.trim().length > 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nickname must be at most 8 characters')),
+      );
       return;
     }
     if (_emailController.text.isEmpty || !_emailController.text.contains('@')) {
@@ -179,7 +186,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 textCapitalization: TextCapitalization.words,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: 'Nickname',
+                  counterText:
+                      '', // Hide the counter if desired, or keep it. User didn't specify, but cleaner without if just logic. Actually user said 'limit... highest 8 letters', usually implies a counter. I'll leave default counter.
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
@@ -194,6 +203,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   filled: true,
                   fillColor: AppColors.surface,
                 ),
+                maxLength: 8,
               ),
               const SizedBox(height: 16),
               TextField(
@@ -219,7 +229,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: _obscurePassword,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Password',
@@ -236,6 +246,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   filled: true,
                   fillColor: AppColors.surface,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: AppColors.textSecondary,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
               ),
 
