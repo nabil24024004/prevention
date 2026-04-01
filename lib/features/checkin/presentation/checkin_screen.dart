@@ -451,6 +451,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       ref.invalidate(userProfileStreamProvider);
       ref.invalidate(weeklyCheckInsProvider);
       ref.invalidate(weeklyRelapsesProvider);
+      ref.invalidate(checkedInTodayProvider);
       ref.invalidate(progressDataProvider);
 
       if (mounted) {

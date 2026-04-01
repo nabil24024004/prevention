@@ -17,6 +17,10 @@ final weeklyRelapsesProvider = FutureProvider<List<String>>((ref) async {
   return ref.watch(dashboardRepositoryProvider).getWeeklyRelapses();
 });
 
+final checkedInTodayProvider = FutureProvider<bool>((ref) async {
+  return ref.watch(dashboardRepositoryProvider).hasCheckedInToday();
+});
+
 final relapseHistoryProvider = FutureProvider<List<Map<String, dynamic>>>((
   ref,
 ) async {

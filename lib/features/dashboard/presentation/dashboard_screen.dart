@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +8,6 @@ import 'package:prevention/core/theme/app_colors.dart';
 import '../../auth/data/user_repository.dart';
 import '../../auth/data/user_model.dart';
 import '../data/dashboard_repository.dart';
-import '../../blocking/data/blocker_repository.dart';
 import 'widgets/weekly_streak_widget.dart';
 import 'widgets/streak_timer_widget.dart';
 import '../../progress/presentation/progress_screen.dart';
@@ -24,7 +22,6 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  bool _isBlockerActive = false;
   bool _isOffline = false;
 
   // Dashboard motivation carousel
@@ -85,7 +82,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _checkBlockerStatus();
     _checkConnectivity();
     // Start at a random quote
     _quotePageIndex = Random().nextInt(_dashboardQuotes.length);
@@ -117,73 +113,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
-  Future<void> _checkBlockerStatus() async {
-    final status = await ref.read(blockerRepositoryProvider).isVpnActive();
-    if (mounted) setState(() => _isBlockerActive = status);
-  }
 
-  Future<void> _toggleBlocker() async {
-    try {
-      if (_isBlockerActive) {
-        await ref.read(blockerRepositoryProvider).stopBlocking();
-      } else {
-        // Request notification permission for Android 13+
-        final status = await Permission.notification.request();
-        if (status.isDenied || status.isPermanentlyDenied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Notification permission is required to run the blocker.',
-                ),
-                backgroundColor: AppColors.error,
-              ),
-            );
-          }
-          return;
-        }
-
-        await ref.read(blockerRepositoryProvider).startBlocking();
-      }
-      // Give Android time to start/stop the VPN service
-      await Future.delayed(const Duration(milliseconds: 500));
-      await _checkBlockerStatus();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isBlockerActive
-                  ? 'Browser Protection Enabled'
-                  : 'Browser Protection Disabled',
-            ),
-            backgroundColor: _isBlockerActive ? Colors.green : Colors.grey,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final userProfileAsync = ref.watch(userProfileStreamProvider);
+    final checkedInTodayAsync = ref.watch(checkedInTodayProvider);
+    final checkedInToday = checkedInTodayAsync.valueOrNull ?? false;
 
     return Scaffold(
       backgroundColor: Colors.black, // Dark background
       body: userProfileAsync.when(
         data: (profile) => Stack(
           children: [
-            _buildDashboard(context, profile),
+            _buildDashboard(context, profile, checkedInToday),
             if (_isOffline)
               Positioned(
                 top: MediaQuery.of(context).padding.top + 10,
@@ -254,7 +197,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildDashboard(BuildContext context, UserProfile profile) {
+  Widget _buildDashboard(
+    BuildContext context,
+    UserProfile profile,
+    bool checkedInToday,
+  ) {
     return Stack(
       children: [
         // 1. Ambient Background Gradient
@@ -313,53 +260,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                     Row(
                       children: [
-                        // Protection Status Badge
-                        GestureDetector(
-                          onTap: _toggleBlocker,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _isBlockerActive
-                                  ? const Color(0xFF1B5E20) // Dark Green
-                                  : const Color(0xFF1E1E1E),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: _isBlockerActive
-                                    ? Colors.greenAccent.withValues(alpha: 0.5)
-                                    : Colors.white12,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _isBlockerActive
-                                      ? Icons.security
-                                      : Icons.gpp_bad_outlined,
-                                  color: _isBlockerActive
-                                      ? Colors.white
-                                      : Colors.redAccent,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _isBlockerActive ? 'Protected' : 'Unsafe',
-                                  style: TextStyle(
-                                    color: _isBlockerActive
-                                        ? Colors.white
-                                        : Colors.grey,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
                         IconButton(
                           icon: const Icon(
                             Icons.settings_outlined,
@@ -380,12 +280,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ref.invalidate(userProfileStreamProvider);
                     ref.invalidate(weeklyCheckInsProvider);
                     ref.invalidate(weeklyRelapsesProvider);
-                    await Future.wait([
+                    ref.invalidate(checkedInTodayProvider);
+                     await Future.wait([
                       ref.read(weeklyCheckInsProvider.future),
                       ref.read(weeklyRelapsesProvider.future),
                       ref.read(progressDataProvider.future),
                     ]);
-                    await _checkBlockerStatus();
                   },
                   color: AppColors.primary,
                   backgroundColor: AppColors.surface,
@@ -506,7 +406,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     // Live Timer
                                     StreakTimerWidget(
                                       startDate: profile.startDate,
-                                      isPaused: profile.currentStreakDays == 0,
+                                      isPaused:
+                                          profile.currentStreakDays == 0 &&
+                                          !checkedInToday,
                                     ),
                                   ],
                                 ),
